@@ -870,6 +870,44 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* PWA Install Banner */}
+      <AnimatePresence>
+        {showInstallBanner && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-24 left-4 right-4 z-50 md:hidden"
+          >
+            <div className="industrial-border bg-black p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gold/20 flex items-center justify-center industrial-border">
+                  <span className="text-gold font-display text-sm">614</span>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gold font-black uppercase tracking-tighter shimmer">Disponible para Móvil</p>
+                  <p className="text-white text-xs font-display uppercase italic">Instalar App Oficial</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowInstallBanner(false)}
+                  className="px-3 py-2 text-[10px] text-white/40 uppercase font-black"
+                >
+                  Omitir
+                </button>
+                <button
+                  onClick={handleInstall}
+                  className="px-4 py-2 bg-gold text-black text-[10px] font-black uppercase tracking-widest hover:bg-white transition-colors"
+                >
+                  Instalar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
