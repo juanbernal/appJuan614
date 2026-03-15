@@ -109,6 +109,8 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
           minutes: Math.floor((difference / 1000 / 60) % 60),
           seconds: Math.floor((difference / 1000) % 60)
         });
+      } else {
+        setTimeLeft(null);
       }
     };
 
@@ -246,7 +248,11 @@ export default function App() {
     setRandomizedAlbums(shuffled);
   }, []);
 
-  const openVideo = (track: any) => {
+  const openVideo = (track: any, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setCurrentTrack(track);
     setIsPlaying(true);
     // Use normalized playUrl or detect YouTube ID from link
@@ -449,11 +455,11 @@ export default function App() {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           {/* Main Featured Asset */}
-          <motion.div 
-            whileHover={{ scale: 0.995 }}
-            className="md:col-span-8 relative aspect-square md:aspect-auto md:h-[700px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
-            onClick={() => openVideo(fullSortedCatalog[0])}
-          >
+            <motion.div 
+              whileHover={{ scale: 0.995 }}
+              className="md:col-span-8 relative aspect-square md:aspect-auto md:h-[700px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
+              onClick={(e) => openVideo(fullSortedCatalog[0], e)}
+            >
             <img src={fullSortedCatalog[0].cover} alt={fullSortedCatalog[0].title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
             
