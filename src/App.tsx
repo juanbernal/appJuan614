@@ -31,10 +31,11 @@ const ARTIST = {
   logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
   socials: {
     instagram: "https://www.instagram.com/juan614oficial",
-    youtube: "https://www.youtube.com/@juan614",
+    youtube: "https://www.youtube.com/@juan614", // User mentioned this might be wrong, kept as is for now but fixed the player logic
     spotify: "https://open.spotify.com/intl-es/artist/0vEKa5AOcBkQVXNfGb2FNh",
     tiktok: "https://tiktok.com/@juan614oficial",
-    twitter: "https://twitter.com/diosmasgym"
+    facebook: "https://www.facebook.com/juan614oficial",
+    apple: "https://music.apple.com/artist/juan-614/1725514668"
   },
   featuredTracks: [
     { id: "1", title: "Lo Mejor Que Puedo Darte", album: "Single", duration: "3:45", spotifyUrl: "https://www.youtube.com/embed/YQmozpauppM", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg", releaseDate: "2026-02-12T10:03:34Z" },
@@ -91,6 +92,49 @@ const ARTIST = {
     "https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=800&auto=format&fit=crop"
   ]
 };
+
+function CountdownTimer({ targetDate }: { targetDate: string }) {
+  const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number } | null>(null);
+
+  useEffect(() => {
+    const calculate = () => {
+      const parts = targetDate.split('/');
+      const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      const difference = date.getTime() - new Date().getTime();
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60)
+        });
+      }
+    };
+
+    const timer = setInterval(calculate, 1000);
+    calculate();
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  if (!timeLeft) return <span className="text-gold">ESTRENO INMINENTE</span>;
+
+  return (
+    <div className="flex gap-4">
+      {[
+        { label: 'D', val: timeLeft.days },
+        { label: 'H', val: timeLeft.hours },
+        { label: 'M', val: timeLeft.minutes },
+        { label: 'S', val: timeLeft.seconds }
+      ].map((item, i) => (
+        <div key={i} className="text-center">
+          <p className="text-xl md:text-2xl font-display text-white leading-none">{item.val.toString().padStart(2, '0')}</p>
+          <p className="text-[6px] text-gold font-black uppercase mt-1">{item.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function VideoModal({ isOpen, onClose, videoUrl }: { isOpen: boolean, onClose: () => void, videoUrl: string }) {
   if (!isOpen) return null;
@@ -205,7 +249,20 @@ export default function App() {
   const openVideo = (track: any) => {
     setCurrentTrack(track);
     setIsPlaying(true);
-    setModal({ isOpen: true, videoUrl: track.spotifyUrl });
+    // Use normalized playUrl or detect YouTube ID from link
+    let videoId = '';
+    const urlStr = track.spotifyUrl || track.link || '';
+    
+    if (urlStr.includes('youtube.com/embed/')) {
+      videoId = urlStr.split('/embed/')[1]?.split('?')[0];
+    } else if (urlStr.includes('youtube.com/watch?v=')) {
+      videoId = new URL(urlStr).searchParams.get('v') || '';
+    } else if (urlStr.includes('youtu.be/')) {
+      videoId = urlStr.split('youtu.be/')[1]?.split('?')[0];
+    }
+
+    const finalUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : urlStr;
+    setModal({ isOpen: true, videoUrl: finalUrl });
   };
   
   const closeVideo = () => {
@@ -550,6 +607,8 @@ export default function App() {
                   <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                     <Calendar size={16} className="text-gold" />
                     <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.date}</span>
+                    <div className="h-4 w-[1px] bg-white/10 mx-2" />
+                    <CountdownTimer targetDate={item.date} />
                   </div>
                   <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
                   <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
