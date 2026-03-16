@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 /**
- * Trigger redeploy to activate environment variables
+ * Final trigger: environment variables added to Vercel dashboard.
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
