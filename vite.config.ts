@@ -12,11 +12,18 @@ export default defineConfig(({mode}) => {
 
   if (mode === 'production') {
     if (!catalogUrl || !upcomingUrl) {
+      const availableKeys = Object.keys(process.env).filter(k => k.startsWith('VITE_'));
       throw new Error(`
         CRITICAL BUILD ERROR: Missing Spreadsheet URLs!
         VITE_CATALOG_SHEET_URL: ${catalogUrl ? 'FOUND' : 'MISSING'}
         VITE_UPCOMING_SHEET_URL: ${upcomingUrl ? 'FOUND' : 'MISSING'}
-        Please check your Vercel/Hosting Provider Environment Variables.
+        
+        Available VITE_ variables found in build: [${availableKeys.join(', ')}]
+        
+        Action required: 
+        1. Ensure "Production" environment is checked in Vercel Settings.
+        2. Ensure there are NO SPACES in the names.
+        3. Double check the Project name in Vercel.
       `);
     }
   }
