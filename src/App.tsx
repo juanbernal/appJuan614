@@ -61,7 +61,9 @@ const INITIAL_ARTIST = {
   ]
 };
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZwk9PkB6bti2CTDt0tMFsyYcDZqLN03YvNWMwx4cdHjvPccDI4cm3fFIiM3Sa0AP2HhHpD0X4L9Kf/pub?output=csv";
+const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
+const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
+const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
 
 // Simple CSV parser that handles quotes and commas
 const parseCSV = (csv: string) => {
@@ -240,67 +242,86 @@ export default function App() {
   useEffect(() => {
     const fetchSheetData = async () => {
       try {
-        const response = await fetch(`${SHEET_URL}&t=${Date.now()}`); // Added timestamp to bypass cache
-        const csvText = await response.text();
-        const rows = parseCSV(csvText);
-        
-        if (rows.length < 2) return;
-
-        // Skip header
-        const dataRows = rows.slice(1);
-        
-        // Row 1 is Artist Info usually
-        const artistInfo = dataRows[0];
-        const newArtistData = { ...INITIAL_ARTIST };
-        
-        if (artistInfo && artistInfo[2]?.startsWith('http')) {
-          newArtistData.logo = artistInfo[3] || newArtistData.logo;
-          newArtistData.socials.spotify = artistInfo[2] || newArtistData.socials.spotify;
+        if (!CATALOG_URL || !UPCOMING_URL) {
+          console.warn("Spreadsheet URLs missing in environment variables. Using initial data.");
+          setIsLoading(false);
+          return;
         }
 
+        const [catRes, upRes] = await Promise.all([
+          fetch(`${CATALOG_URL}&t=${Date.now()}`),
+          fetch(`${UPCOMING_URL}&t=${Date.now()}`)
+        ]);
+
+        const [catCsv, upCsv] = await Promise.all([catRes.text(), upRes.text()]);
+        const catRows = parseCSV(catCsv);
+        const upRows = parseCSV(upCsv);
+        
         const allTracks: any[] = [];
         const upcoming: any[] = [];
         const now = new Date();
+        const newArtistData = { ...INITIAL_ARTIST };
 
-        // Remaining rows are tracks
-        dataRows.forEach((row, idx) => {
-          if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0) || (row[0].toLowerCase() === 'name' && idx === 0)) return; // Skip empty or header rows
-
-          const track = {
-            id: `track-${idx}`,
-            title: row[0],
-            artist: row[5] || "Juan 614",
-            spotifyUrl: row[3], // preSaveLink
-            cover: row[2], // coverImageUrl
-            album: "Single",
-            releaseDate: row[1] || new Date().toISOString()
-          };
-
-          const releaseDate = parseReleaseDate(track.releaseDate);
-          if (releaseDate > now) {
-            upcoming.push({
-              title: track.title,
-              date: releaseDate.toISOString(), // Pass ISO for robust parsing
-              cover: track.cover,
-              link: track.spotifyUrl,
-              artist: track.artist
-            });
-          } else {
-            allTracks.push({
-              ...track,
-              releaseDate: releaseDate.toISOString() // Normalize for sorting
-            });
+        // Process Catalog Rows
+        if (catRows.length > 1) {
+          const dataRows = catRows.slice(1);
+          // Row 1 Artist Info
+          const artistInfo = dataRows[0];
+          if (artistInfo && artistInfo[2]?.startsWith('http')) {
+            newArtistData.logo = artistInfo[3] || newArtistData.logo;
+            newArtistData.socials.spotify = artistInfo[2] || newArtistData.socials.spotify;
           }
-        });
 
-        // Sort by date descending
+          dataRows.forEach((row, idx) => {
+            if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0)) return;
+            const track = {
+              id: `cat-${idx}`,
+              title: row[0],
+              artist: row[1] || "Juan 614",
+              spotifyUrl: row[2],
+              cover: row[3],
+              album: row[4] || "Single",
+              releaseDate: row[5] || new Date().toISOString()
+            };
+            const releaseDate = parseReleaseDate(track.releaseDate);
+            allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
+          });
+        }
+
+        // Process Upcoming Rows
+        if (upRows.length > 1) {
+          upRows.forEach((row, idx) => {
+            if (!row[0] || (row[0].toLowerCase() === 'name' && idx === 0)) return;
+            const track = {
+              id: `up-${idx}`,
+              title: row[0],
+              artist: row[5] || "Juan 614",
+              spotifyUrl: row[3], // preSaveLink
+              cover: row[2], // coverImageUrl
+              album: "Single",
+              releaseDate: row[1] || new Date().toISOString()
+            };
+            const releaseDate = parseReleaseDate(track.releaseDate);
+            if (releaseDate > now) {
+              upcoming.push({
+                ...track,
+                date: releaseDate.toISOString(), // Standardizing
+                link: track.spotifyUrl
+              });
+            } else {
+              allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
+            }
+          });
+        }
+
+        // Final Sort and Update
         allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
         setArtistData({
           ...newArtistData,
           featuredTracks: allTracks.slice(0, 5),
-          albums: allTracks, // All tracks for inventory
-          upcoming: upcoming.length > 0 ? upcoming : INITIAL_ARTIST.upcoming // Fallback if none found
+          albums: allTracks,
+          upcoming: upcoming.length > 0 ? upcoming : INITIAL_ARTIST.upcoming
         });
       } catch (error) {
         console.error("Error fetching sheet data:", error);
