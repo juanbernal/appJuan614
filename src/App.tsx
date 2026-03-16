@@ -111,8 +111,7 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
 
   useEffect(() => {
     const calculate = () => {
-      const parts = targetDate.split('/');
-      const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      const date = parseReleaseDate(targetDate);
       const difference = date.getTime() - new Date().getTime();
 
       if (difference > 0) {
@@ -264,8 +263,8 @@ export default function App() {
         const now = new Date();
 
         // Remaining rows are tracks
-        dataRows.slice(1).forEach((row, idx) => {
-          if (!row[0]) return; // Skip empty rows
+        dataRows.forEach((row, idx) => {
+          if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0)) return; // Skip empty or title rows
 
           const track = {
             id: `track-${idx}`,
@@ -281,7 +280,7 @@ export default function App() {
           if (releaseDate > now) {
             upcoming.push({
               title: track.title,
-              date: releaseDate.toLocaleDateString('es-MX'),
+              date: releaseDate.toISOString(), // Pass ISO for robust parsing
               cover: track.cover,
               link: track.spotifyUrl,
               artist: track.artist
