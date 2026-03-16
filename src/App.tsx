@@ -240,8 +240,6 @@ export default function App() {
         }
 
         const allTracks: any[] = [];
-        const upcoming: any[] = [];
-        const now = new Date();
 
         // Remaining rows are tracks
         dataRows.slice(1).forEach((row, idx) => {
@@ -257,18 +255,7 @@ export default function App() {
             releaseDate: row[5] || new Date().toISOString()
           };
 
-          const releaseDate = new Date(track.releaseDate);
-          if (releaseDate > now) {
-            upcoming.push({
-              title: track.title,
-              date: releaseDate.toLocaleDateString('es-MX'),
-              cover: track.cover,
-              link: track.spotifyUrl,
-              artist: track.artist
-            });
-          } else {
-            allTracks.push(track);
-          }
+          allTracks.push(track);
         });
 
         // Sort by date descending
@@ -278,7 +265,7 @@ export default function App() {
           ...newArtistData,
           featuredTracks: allTracks.slice(0, 5),
           albums: allTracks, // All tracks for inventory
-          upcoming: upcoming.length > 0 ? upcoming : INITIAL_ARTIST.upcoming // Fallback if none found
+          upcoming: [] // No longer used
         });
       } catch (error) {
         console.error("Error fetching sheet data:", error);
@@ -437,7 +424,7 @@ export default function App() {
           </motion.div>
           
           <div className="hidden lg:flex gap-12 items-center text-[10px] uppercase tracking-[0.4em] font-black">
-            {['Estrenos', 'Próximos', 'Albumes', 'Bio', 'Contacto'].map((item) => (
+            {['Estrenos', 'Albumes', 'Bio', 'Contacto'].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-gold transition-colors relative group">
                 {item}
                 <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-gold transition-all group-hover:w-full"></span>
@@ -697,51 +684,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Estrenos Próximos Section */}
-      <section id="upcoming" className="py-20 md:py-32 px-4 md:px-6 bg-ranch-charcoal">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="mb-12 md:mb-20">
-            <span className="font-gothic text-gold text-4xl md:text-5xl mb-2 block">Estrenos Próximos</span>
-            <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
-              Lo Que <br /> <span className="gold-text">Viene</span>
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {artistData.upcoming.map((item, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10 hover:border-gold transition-all"
-              >
-                <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
-                  <img src={item.cover} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                </div>
-                <div className="w-full md:w-1/2 text-center md:text-left">
-                  <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                    <Calendar size={16} className="text-gold" />
-                    <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.date}</span>
-                    <div className="h-4 w-[1px] bg-white/10 mx-2" />
-                    <CountdownTimer targetDate={item.date} />
-                  </div>
-                  <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
-                  <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
-                  <a 
-                    href={item.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-block w-full md:w-auto bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-gold transition-all text-center"
-                  >
-                    Pre-Save Now
-                  </a>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Featured Quote Section */}
       <section className="py-24 md:py-40 bg-white text-black overflow-hidden relative">
