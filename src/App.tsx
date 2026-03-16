@@ -308,7 +308,8 @@ export default function App() {
             if (releaseDate > now) {
               upcoming.push({
                 ...track,
-                date: releaseDate.toISOString(), // Standardizing
+                displayDate: releaseDate.toLocaleDateString('es-MX'), // For UI Display
+                date: releaseDate.toISOString(), // For Countdown and logic
                 link: track.spotifyUrl
               });
             } else {
@@ -600,8 +601,10 @@ export default function App() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 bg-gold animate-pulse" />
-              <span className="font-black text-gold uppercase tracking-[0.4em] text-[10px]">Database Status: Updated</span>
+              <div className={`w-3 h-3 ${isLoading ? 'bg-white' : 'bg-gold'} animate-pulse`} />
+              <span className="font-black text-gold uppercase tracking-[0.4em] text-[10px]">
+                {isLoading ? 'Syncing Network...' : 'Database Secured & Online'}
+              </span>
             </div>
             <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none">
               Digital <br /> <span className="gold-text">Inventory</span>
@@ -776,7 +779,7 @@ export default function App() {
                 <div className="w-full md:w-1/2 text-center md:text-left">
                   <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                     <Calendar size={16} className="text-gold" />
-                    <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.date}</span>
+                    <span className="text-gold font-black uppercase tracking-widest text-[10px]">{(item as any).displayDate || item.date}</span>
                     <div className="h-4 w-[1px] bg-white/10 mx-2" />
                     <CountdownTimer targetDate={item.date} />
                   </div>
