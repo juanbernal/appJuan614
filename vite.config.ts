@@ -5,6 +5,22 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  
+  // Strict check for production build
+  const catalogUrl = process.env.VITE_CATALOG_SHEET_URL || env.VITE_CATALOG_SHEET_URL;
+  const upcomingUrl = process.env.VITE_UPCOMING_SHEET_URL || env.VITE_UPCOMING_SHEET_URL;
+
+  if (mode === 'production') {
+    if (!catalogUrl || !upcomingUrl) {
+      throw new Error(`
+        CRITICAL BUILD ERROR: Missing Spreadsheet URLs!
+        VITE_CATALOG_SHEET_URL: ${catalogUrl ? 'FOUND' : 'MISSING'}
+        VITE_UPCOMING_SHEET_URL: ${upcomingUrl ? 'FOUND' : 'MISSING'}
+        Please check your Vercel/Hosting Provider Environment Variables.
+      `);
+    }
+  }
+
   return {
     plugins: [react(), tailwindcss()],
     define: {
