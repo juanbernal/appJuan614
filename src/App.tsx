@@ -61,7 +61,7 @@ const INITIAL_ARTIST = {
   ]
 };
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5kDxneZsHJTMUhcSkKeZM842GrmN1LJLfoqxMC-NY_fcVrB3MokMvy6E385Hemt2KM5evC6_gCAQL/pub?output=csv";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZwk9PkB6bti2CTDt0tMFsyYcDZqLN03YvNWMwx4cdHjvPccDI4cm3fFIiM3Sa0AP2HhHpD0X4L9Kf/pub?output=csv";
 
 // Simple CSV parser that handles quotes and commas
 const parseCSV = (csv: string) => {
@@ -264,16 +264,16 @@ export default function App() {
 
         // Remaining rows are tracks
         dataRows.forEach((row, idx) => {
-          if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0)) return; // Skip empty or title rows
+          if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0) || (row[0].toLowerCase() === 'name' && idx === 0)) return; // Skip empty or header rows
 
           const track = {
             id: `track-${idx}`,
             title: row[0],
-            artist: row[1] || "Juan 614",
-            spotifyUrl: row[2], // Usually YouTube link here
-            cover: row[3],
-            album: row[4] || "Single",
-            releaseDate: row[5] || new Date().toISOString()
+            artist: row[5] || "Juan 614",
+            spotifyUrl: row[3], // preSaveLink
+            cover: row[2], // coverImageUrl
+            album: "Single",
+            releaseDate: row[1] || new Date().toISOString()
           };
 
           const releaseDate = parseReleaseDate(track.releaseDate);
