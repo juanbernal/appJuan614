@@ -23,6 +23,10 @@ import {
   Heart
 } from 'lucide-react';
 
+const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
+const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
+const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
+
 // Artist Data
 // Initial data for hydration and fallbacks
 const INITIAL_ARTIST = {
@@ -31,6 +35,7 @@ const INITIAL_ARTIST = {
   bio: "La cara de pera. Lengua larga. Ya basta. Muerde como serpiente. Corazones rotos dolidos. Juan 614 es la nueva voz de las calles, trayendo una energía cruda y única a la escena urbana regional desde Chihuahua.",
   spotifyId: "0vEKa5AOcBkQVXNfGb2FNh",
   logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
+  _debug: { catalogUrlSet: !!CATALOG_URL, upcomingUrlSet: !!UPCOMING_URL },
   socials: {
     instagram: "https://www.instagram.com/juan614oficial",
     youtube: "https://www.youtube.com/@juan614",
@@ -62,9 +67,7 @@ const INITIAL_ARTIST = {
   ]
 };
 
-const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
-const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
-const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
+
 
 // Simple CSV parser that handles quotes and commas
 const parseCSV = (csv: string) => {
@@ -250,8 +253,8 @@ export default function App() {
         }
 
         const [catRes, upRes] = await Promise.all([
-          fetch(`${CATALOG_URL}&t=${Date.now()}`),
-          fetch(`${UPCOMING_URL}&t=${Date.now()}`)
+          fetch(`${CATALOG_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }),
+          fetch(`${UPCOMING_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
         ]);
 
         const [catCsv, upCsv] = await Promise.all([catRes.text(), upRes.text()]);
@@ -987,15 +990,12 @@ export default function App() {
               </ul>
             </div>
             <div>
-              <h5 className="text-gold font-black uppercase tracking-widest text-[10px] mb-6 md:mb-8">Conéctate</h5>
-              <div className="flex gap-6">
-                <a href={artistData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Instagram size={24} /></a>
-                <a href={artistData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
-                </a>
-                <a href={artistData.socials.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Youtube size={24} /></a>
-                <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Music2 size={24} /></a>
-              </div>
+              <h5 className="text-gold font-black uppercase tracking-widest text-[10px] mb-6 md:mb-8">Debug</h5>
+              <p className="text-[6px] text-white/20 uppercase tracking-widest">
+                Cat: {CATALOG_URL ? 'Linked' : 'Missing'} <br />
+                Upc: {UPCOMING_URL ? 'Linked' : 'Missing'} <br />
+                Cache: v3
+              </p>
             </div>
           </div>
           

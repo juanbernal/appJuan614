@@ -1,4 +1,4 @@
-const CACHE_NAME = 'juan614-v2';
+const CACHE_NAME = 'juan614-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
