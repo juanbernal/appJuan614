@@ -995,7 +995,7 @@ export default function App() {
               <p className="text-[6px] text-white/20 uppercase tracking-widest">
                 Cat: {CATALOG_URL ? 'Linked' : 'Missing'} <br />
                 Upc: {UPCOMING_URL ? 'Linked' : 'Missing'} <br />
-                Cache: v3
+                Cache: <span className="cursor-pointer underline" onClick={() => alert(`CAT: ${CATALOG_URL}\nUPC: ${UPCOMING_URL}`)}>v3</span>
               </p>
             </div>
           </div>
