@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 /**
+ * Trigger redeploy to activate environment variables
+ */
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
