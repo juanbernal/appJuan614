@@ -995,7 +995,7 @@ export default function App() {
               <p className="text-[6px] text-white/20 uppercase tracking-widest">
                 Cat: {CATALOG_URL ? 'Linked' : 'Missing'} <br />
                 Upc: {UPCOMING_URL ? 'Linked' : 'Missing'} <br />
-                Cache: <span className="cursor-pointer underline" onClick={() => alert(`CAT: ${CATALOG_URL}\nUPC: ${UPCOMING_URL}`)}>v3</span>
+                Cache: <span className="cursor-pointer underline" onClick={() => alert(`CAT: ${import.meta.env.VITE_CATALOG_SHEET_URL}\nUPC: ${import.meta.env.VITE_UPCOMING_SHEET_URL}\nMODE: ${import.meta.env.MODE}`)}>v4</span>
               </p>
             </div>
           </div>
