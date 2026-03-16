@@ -198,11 +198,11 @@ function GlobalPlayer({ currentTrack, isPlaying, onTogglePlay }: { currentTrack:
       <div className="max-w-[1800px] mx-auto flex items-center justify-between gap-6">
         <div className="flex items-center gap-4 flex-1">
           <div className="w-12 h-12 md:w-16 md:h-16 overflow-hidden industrial-border">
-            <img src={currentTrack.cover} alt={currentTrack.title} className="w-full h-full object-cover" />
+            <img src={currentTrack?.cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200&auto=format&fit=crop'} alt={currentTrack?.title} className="w-full h-full object-cover" />
           </div>
           <div className="min-w-0">
-            <h4 className="font-display text-lg md:text-xl uppercase italic gold-text truncate">{currentTrack.title}</h4>
-            <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/40 font-black">Juan 614 • {currentTrack.album}</p>
+            <h4 className="font-display text-lg md:text-xl uppercase italic gold-text truncate">{currentTrack?.title}</h4>
+            <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/40 font-black">Juan 614 • {currentTrack?.album}</p>
           </div>
         </div>
 
@@ -356,6 +356,8 @@ export default function App() {
   useEffect(() => {
     if (fullSortedCatalog.length > 0) {
       setCurrentTrack(fullSortedCatalog[0]);
+    } else if (artistData.upcoming.length > 0) {
+      setCurrentTrack(artistData.upcoming[0]);
     }
   }, [artistData]);
 
@@ -363,6 +365,8 @@ export default function App() {
     if (artistData.featuredTracks.length > 0) {
       const randomIndex = Math.floor(Math.random() * artistData.featuredTracks.length);
       setHeroTrack(artistData.featuredTracks[randomIndex]);
+    } else if (artistData.upcoming.length > 0) {
+      setHeroTrack(artistData.upcoming[0]);
     }
     const shuffled = [...artistData.albums].sort(() => Math.random() - 0.5);
     setRandomizedAlbums(shuffled);
@@ -492,7 +496,7 @@ export default function App() {
               initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.5 }}
               transition={{ duration: 2 }}
-              src={heroTrack.cover} 
+              src={heroTrack?.cover || artistData.logo} 
               alt="Juan 614 Hero"
               className="w-full h-full object-cover grayscale"
               referrerPolicy="no-referrer"
@@ -511,11 +515,11 @@ export default function App() {
               <span className="font-black text-gold uppercase tracking-[0.5em] text-xs">Featured Single</span>
             </div>
             <h2 className="font-display text-[15vw] md:text-[12vw] leading-[0.8] mb-8 tracking-tighter uppercase italic gold-text text-glow">
-              {heroTrack.title}
+              {heroTrack?.title || artistData.name}
             </h2>
             <div className="flex flex-wrap gap-6 items-center">
               <button 
-                onClick={() => openVideo(heroTrack)}
+                onClick={() => heroTrack && openVideo(heroTrack)}
                 className="group relative px-12 py-6 bg-white text-black font-black uppercase tracking-[0.3em] text-sm overflow-hidden transition-all hover:bg-gold"
               >
                 <div className="relative z-10 flex items-center gap-4">
@@ -539,9 +543,9 @@ export default function App() {
             transition={{ delay: 0.8 }}
             className="hidden lg:block w-1/3 aspect-square industrial-border p-4 bg-white/5 backdrop-blur-xl"
           >
-            <img src={heroTrack.cover} className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-700" />
+            <img src={heroTrack?.cover || artistData.logo} className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-700" />
             <div className="absolute top-8 right-8 bg-gold text-black p-3 font-black text-[10px] uppercase tracking-tighter rotate-12">
-              DISPONIBLE <br /> AHORA
+              DISPONIBLE <br /> {heroTrack?.releaseDate && new Date(heroTrack.releaseDate) > new Date() ? 'PRÓXIMAMENTE' : 'AHORA'}
             </div>
           </motion.div>
         </div>
@@ -587,6 +591,7 @@ export default function App() {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           {/* Main Featured Asset */}
+          {fullSortedCatalog.length > 0 && (
             <motion.div 
               whileHover={{ scale: 0.995 }}
               className="md:col-span-8 relative aspect-square md:aspect-auto md:h-[700px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
@@ -629,6 +634,7 @@ export default function App() {
               </div>
             </div>
           </motion.div>
+          )}
 
           {/* Side Grid Assets */}
           <div className="md:col-span-4 grid grid-cols-1 gap-6 md:gap-8">
