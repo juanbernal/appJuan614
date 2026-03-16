@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -273,7 +274,9 @@ export default function App() {
           }
 
           dataRows.forEach((row, idx) => {
-            if (!row[0] || (row[0].toLowerCase() === 'titulo' && idx === 0)) return;
+            // idx 0 is artist info, already handled above
+            if (idx === 0 || !row[0]) return;
+            
             const track = {
               id: `cat-${idx}`,
               title: row[0],
@@ -281,7 +284,7 @@ export default function App() {
               spotifyUrl: row[2],
               cover: row[3],
               album: row[4] || "Single",
-              releaseDate: row[5] || new Date().toISOString()
+              releaseDate: row[5] || ""
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
             allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
