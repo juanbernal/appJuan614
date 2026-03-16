@@ -86,6 +86,26 @@ const parseCSV = (csv: string) => {
   });
 };
 
+// Robust date parser for spreadsheet dates (handles ISO and DD/MM/YYYY)
+const parseReleaseDate = (dateStr: string) => {
+  if (!dateStr) return new Date();
+  
+  // Try ISO first
+  let date = new Date(dateStr);
+  if (!isNaN(date.getTime())) return date;
+  
+  // Try DD/MM/YYYY
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      if (!isNaN(date.getTime())) return date;
+    }
+  }
+  
+  return new Date();
+};
+
 function CountdownTimer({ targetDate }: { targetDate: string }) {
   const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number } | null>(null);
 
@@ -257,7 +277,7 @@ export default function App() {
             releaseDate: row[5] || new Date().toISOString()
           };
 
-          const releaseDate = new Date(track.releaseDate);
+          const releaseDate = parseReleaseDate(track.releaseDate);
           if (releaseDate > now) {
             upcoming.push({
               title: track.title,
@@ -267,7 +287,10 @@ export default function App() {
               artist: track.artist
             });
           } else {
-            allTracks.push(track);
+            allTracks.push({
+              ...track,
+              releaseDate: releaseDate.toISOString() // Normalize for sorting
+            });
           }
         });
 
