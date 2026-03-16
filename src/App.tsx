@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 
 // Artist Data
-const ARTIST = {
+// Initial data for hydration and fallbacks
+const INITIAL_ARTIST = {
   name: "JUAN 614",
   genre: "CORRIDOS TUMBADOS • URBANO",
   bio: "La cara de pera. Lengua larga. Ya basta. Muerde como serpiente. Corazones rotos dolidos. Juan 614 es la nueva voz de las calles, trayendo una energía cruda y única a la escena urbana regional desde Chihuahua.",
@@ -31,7 +32,7 @@ const ARTIST = {
   logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
   socials: {
     instagram: "https://www.instagram.com/juan614oficial",
-    youtube: "https://www.youtube.com/@juan614", // User mentioned this might be wrong, kept as is for now but fixed the player logic
+    youtube: "https://www.youtube.com/@juan614",
     spotify: "https://open.spotify.com/intl-es/artist/0vEKa5AOcBkQVXNfGb2FNh",
     tiktok: "https://tiktok.com/@juan614oficial",
     facebook: "https://www.facebook.com/juan614oficial",
@@ -39,43 +40,10 @@ const ARTIST = {
   },
   featuredTracks: [
     { id: "1", title: "Lo Mejor Que Puedo Darte", album: "Single", duration: "3:45", spotifyUrl: "https://www.youtube.com/embed/YQmozpauppM", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg", releaseDate: "2026-02-12T10:03:34Z" },
-    { id: "2", title: "Familia Pirata", album: "Single", duration: "3:20", spotifyUrl: "https://www.youtube.com/embed/Z0lMPVUYKnQ", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg", releaseDate: "2026-02-10T10:00:00Z" },
-    { id: "3", title: "Esa Es La Chispa", album: "Single", duration: "3:10", spotifyUrl: "https://www.youtube.com/embed/Ae77IJ4RZnE", cover: "https://i.ytimg.com/vi/Ae77IJ4RZnE/hqdefault.jpg", releaseDate: "2026-02-05T09:00:00Z" },
-    { id: "4", title: "Te Olvidé", album: "Single", duration: "3:05", spotifyUrl: "https://www.youtube.com/embed/rM3ub2nanek", cover: "https://i.ytimg.com/vi/rM3ub2nanek/hqdefault.jpg", releaseDate: "2026-02-01T08:00:00Z" },
-    { id: "5", title: "Pega Fuerte", album: "Single", duration: "3:30", spotifyUrl: "https://www.youtube.com/embed/CKV8Xxa-QL4", cover: "https://i.ytimg.com/vi/CKV8Xxa-QL4/hqdefault.jpg", releaseDate: "2026-01-25T12:00:00Z" }
+    { id: "2", title: "Familia Pirata", album: "Single", duration: "3:20", spotifyUrl: "https://www.youtube.com/embed/Z0lMPVUYKnQ", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg", releaseDate: "2026-02-10T10:00:00Z" }
   ],
-  albums: [
-    { title: "Lo Mejor Que Puedo Darte", year: "2026", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg", link: "https://music.youtube.com/watch?v=YQmozpauppM", releaseDate: "2026-02-12T10:03:34Z" },
-    { title: "Familia Pirata", year: "2026", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg", link: "https://music.youtube.com/watch?v=Z0lMPVUYKnQ", releaseDate: "2026-02-10T10:00:00Z" },
-    { title: "Esa Es La Chispa", year: "2026", cover: "https://i.ytimg.com/vi/Ae77IJ4RZnE/hqdefault.jpg", link: "https://music.youtube.com/watch?v=Ae77IJ4RZnE", releaseDate: "2026-02-05T09:00:00Z" },
-    { title: "Te Olvidé", year: "2026", cover: "https://i.ytimg.com/vi/rM3ub2nanek/hqdefault.jpg", link: "https://music.youtube.com/watch?v=rM3ub2nanek", releaseDate: "2026-02-01T08:00:00Z" },
-    { title: "Pega Fuerte", year: "2026", cover: "https://i.ytimg.com/vi/CKV8Xxa-QL4/hqdefault.jpg", link: "https://music.youtube.com/watch?v=CKV8Xxa-QL4", releaseDate: "2026-01-25T12:00:00Z" },
-    { title: "Te Esculco el Celular", year: "2026", cover: "https://i.ytimg.com/vi/NWRyYlaWNYM/hqdefault.jpg", link: "https://music.youtube.com/watch?v=NWRyYlaWNYM", releaseDate: "2026-01-20T11:00:00Z" },
-    { title: "Tan Bueno Conmigo", year: "2026", cover: "https://i.ytimg.com/vi/B-pRI3ez6uc/hqdefault.jpg", link: "https://music.youtube.com/watch?v=B-pRI3ez6uc", releaseDate: "2026-01-15T10:00:00Z" },
-    { title: "El verdadero arrepentimiento", year: "2026", cover: "https://i.ytimg.com/vi/_KwRI_J9Ins/hqdefault.jpg", link: "https://music.youtube.com/watch?v=_KwRI_J9Ins", releaseDate: "2026-01-10T09:00:00Z" },
-    { title: "Ahí No Es", year: "2026", cover: "https://i.ytimg.com/vi/R6qVK65aHzc/hqdefault.jpg", link: "https://music.youtube.com/watch?v=R6qVK65aHzc", releaseDate: "2026-01-05T08:00:00Z" },
-    { title: "Si Volviera A Nacer", year: "2026", cover: "https://i.ytimg.com/vi/NHJsogA-HEk/hqdefault.jpg", link: "https://music.youtube.com/watch?v=NHJsogA-HEk", releaseDate: "2025-12-25T12:00:00Z" },
-    { title: "Te Lo Sostengo", year: "2026", cover: "https://i.ytimg.com/vi/uv8gxnlYkqw/hqdefault.jpg", link: "https://music.youtube.com/watch?v=uv8gxnlYkqw", releaseDate: "2025-12-20T11:00:00Z" },
-    { title: "Soy Un Bombón", year: "2026", cover: "https://i.ytimg.com/vi/1OAldFO7uWg/hqdefault.jpg", link: "https://music.youtube.com/watch?v=1OAldFO7uWg", releaseDate: "2025-12-15T10:00:00Z" },
-    { title: "Identidad (Therian)", year: "2026", cover: "https://i.ytimg.com/vi/2_P60bLFU_o/hqdefault.jpg", link: "https://music.youtube.com/watch?v=2_P60bLFU_o", releaseDate: "2025-12-10T09:00:00Z" },
-    { title: "El Problema Eres Tú", year: "2026", cover: "https://i.ytimg.com/vi/YQMpoVhVobQ/hqdefault.jpg", link: "https://music.youtube.com/watch?v=YQMpoVhVobQ", releaseDate: "2025-12-05T08:00:00Z" },
-    { title: "Como si Exportaras Algo Ilegal", year: "2026", cover: "https://i.ytimg.com/vi/bWNxvG1Qutc/hqdefault.jpg", link: "https://music.youtube.com/watch?v=bWNxvG1Qutc", releaseDate: "2025-11-25T12:00:00Z" },
-    { title: "Si Me Dejas Me Hundo", year: "2026", cover: "https://i.ytimg.com/vi/nLWp9VMEMkE/hqdefault.jpg", link: "https://music.youtube.com/watch?v=nLWp9VMEMkE", releaseDate: "2025-11-20T11:00:00Z" },
-    { title: "Romina la perrita", year: "2026", cover: "https://i.ytimg.com/vi/YQOM39P21pU/hqdefault.jpg", link: "https://music.youtube.com/watch?v=YQOM39P21pU", releaseDate: "2025-11-15T10:00:00Z" },
-    { title: "Hombre Fuerte", year: "2026", cover: "https://i.ytimg.com/vi/phikL_DqlAQ/hqdefault.jpg", link: "https://music.youtube.com/watch?v=phikL_DqlAQ", releaseDate: "2025-11-10T09:00:00Z" },
-    { title: "Soy Tu Niña", year: "2026", cover: "https://i.ytimg.com/vi/dVEcqkHZ8t4/hqdefault.jpg", link: "https://music.youtube.com/watch?v=dVEcqkHZ8t4", releaseDate: "2025-11-05T08:00:00Z" },
-    { title: "Te pido perdón", year: "2026", cover: "https://i.ytimg.com/vi/7U6seT-Kr2E/hqdefault.jpg", link: "https://music.youtube.com/watch?v=7U6seT-Kr2E", releaseDate: "2025-10-25T12:00:00Z" },
-    { title: "Limpiando con Trapo sucio", year: "2026", cover: "https://i.ytimg.com/vi/xfF01iI01qg/hqdefault.jpg", link: "https://music.youtube.com/watch?v=xfF01iI01qg", releaseDate: "2025-10-20T11:00:00Z" },
-    { title: "El Alucín", year: "2026", cover: "https://i.ytimg.com/vi/1XR5rTQyiRE/hqdefault.jpg", link: "https://music.youtube.com/watch?v=1XR5rTQyiRE", releaseDate: "2025-10-15T10:00:00Z" },
-    { title: "El Corazón Sana", year: "2026", cover: "https://i.ytimg.com/vi/8gdEhhQO2II/hqdefault.jpg", link: "https://music.youtube.com/watch?v=8gdEhhQO2II", releaseDate: "2025-10-10T09:00:00Z" },
-    { title: "Día Difícil", year: "2026", cover: "https://i.ytimg.com/vi/blHatmThWnM/hqdefault.jpg", link: "https://music.youtube.com/watch?v=blHatmThWnM", releaseDate: "2025-10-05T08:00:00Z" },
-    { title: "La Religión No Salva", year: "2026", cover: "https://i.ytimg.com/vi/-l7clEVlaOU/hqdefault.jpg", link: "https://music.youtube.com/watch?v=-l7clEVlaOU", releaseDate: "2025-09-25T12:00:00Z" },
-    { title: "Aprendí a Perdonar", year: "2026", cover: "https://i.ytimg.com/vi/f4iVwG7tCsU/hqdefault.jpg", link: "https://music.youtube.com/watch?v=f4iVwG7tCsU", releaseDate: "2025-09-20T11:00:00Z" }
-  ],
-  upcoming: [
-    { title: "¿QUIEN MURIÓ POR TI?", date: "16/03/2026", cover: "https://s3.amazonaws.com/gather.fandalism.com/800x800%2D8585920%2D%2D078C020F%2DA0F7%2D4C8D%2DA926B8ADD23FE77F%2D%2D0%2D%2D2994197%2D%2DMakethemain2k202602050133.jpg", link: "https://distrokid.com/hyperfollow/juan614/quien-muri-por-ti", artist: "Juan 614" },
-    { title: "Lo que los cristianos CALLAMOS", date: "20/03/2026", cover: "https://s3.amazonaws.com/gather.fandalism.com/8585920%2D%2D70211B8D%2DC850%2D4C55%2D84364D28D8DE9ABD%2D%2D0%2D%2D1797294%2D%2DChatGPTImage10mar2026121527a.m..png", link: "https://distrokid.com/hyperfollow/diosmasgym/lo-que-los-cristianos-callamos", artist: "Diosmasgym" }
-  ],
+  albums: [],
+  upcoming: [],
   tour: [
     { city: "Chihuahua, MX", venue: "Arena Chihuahua", date: "15 Mayo" },
     { city: "Monterrey, MX", venue: "Auditorio Citibanamex", date: "22 Mayo" },
@@ -91,6 +59,31 @@ const ARTIST = {
     "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=800&auto=format&fit=crop"
   ]
+};
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5kDxneZsHJTMUhcSkKeZM842GrmN1LJLfoqxMC-NY_fcVrB3MokMvy6E385Hemt2KM5evC6_gCAQL/pub?output=csv";
+
+// Simple CSV parser that handles quotes and commas
+const parseCSV = (csv: string) => {
+  const lines = csv.split(/\r?\n/);
+  return lines.map(line => {
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+        } else {
+            cur += char;
+        }
+    }
+    result.push(cur.trim());
+    return result;
+  });
 };
 
 function CountdownTimer({ targetDate }: { targetDate: string }) {
@@ -218,10 +211,84 @@ function GlobalPlayer({ currentTrack, isPlaying, onTogglePlay }: { currentTrack:
 }
 
 export default function App() {
+  const [artistData, setArtistData] = useState(INITIAL_ARTIST);
+  const [isLoading, setIsLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, videoUrl: '' });
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const fetchSheetData = async () => {
+      try {
+        const response = await fetch(`${SHEET_URL}&t=${Date.now()}`); // Added timestamp to bypass cache
+        const csvText = await response.text();
+        const rows = parseCSV(csvText);
+        
+        if (rows.length < 2) return;
+
+        // Skip header
+        const dataRows = rows.slice(1);
+        
+        // Row 1 is Artist Info usually
+        const artistInfo = dataRows[0];
+        const newArtistData = { ...INITIAL_ARTIST };
+        
+        if (artistInfo && artistInfo[2]?.startsWith('http')) {
+          newArtistData.logo = artistInfo[3] || newArtistData.logo;
+          newArtistData.socials.spotify = artistInfo[2] || newArtistData.socials.spotify;
+        }
+
+        const allTracks: any[] = [];
+        const upcoming: any[] = [];
+        const now = new Date();
+
+        // Remaining rows are tracks
+        dataRows.slice(1).forEach((row, idx) => {
+          if (!row[0]) return; // Skip empty rows
+
+          const track = {
+            id: `track-${idx}`,
+            title: row[0],
+            artist: row[1] || "Juan 614",
+            spotifyUrl: row[2], // Usually YouTube link here
+            cover: row[3],
+            album: row[4] || "Single",
+            releaseDate: row[5] || new Date().toISOString()
+          };
+
+          const releaseDate = new Date(track.releaseDate);
+          if (releaseDate > now) {
+            upcoming.push({
+              title: track.title,
+              date: releaseDate.toLocaleDateString('es-MX'),
+              cover: track.cover,
+              link: track.spotifyUrl,
+              artist: track.artist
+            });
+          } else {
+            allTracks.push(track);
+          }
+        });
+
+        // Sort by date descending
+        allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+
+        setArtistData({
+          ...newArtistData,
+          featuredTracks: allTracks.slice(0, 5),
+          albums: allTracks, // All tracks for inventory
+          upcoming: upcoming.length > 0 ? upcoming : INITIAL_ARTIST.upcoming // Fallback if none found
+        });
+      } catch (error) {
+        console.error("Error fetching sheet data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSheetData();
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -249,8 +316,8 @@ export default function App() {
   
   // Create a unified catalog sorted by releaseDate
   const fullSortedCatalog = [
-    ...ARTIST.featuredTracks,
-    ...ARTIST.albums.filter(alb => !ARTIST.featuredTracks.find(ft => ft.title === alb.title))
+    ...artistData.featuredTracks,
+    ...artistData.albums.filter(alb => !artistData.featuredTracks.find(ft => ft.title === alb.title))
   ].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
    .map((item, idx) => ({
       ...item,
@@ -261,18 +328,23 @@ export default function App() {
 
   const [currentTrack, setCurrentTrack] = useState<any>(fullSortedCatalog[0]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [heroTrack, setHeroTrack] = useState<any>(ARTIST.featuredTracks[Math.floor(Math.random() * ARTIST.featuredTracks.length)]);
-  const [randomizedAlbums, setRandomizedAlbums] = useState<any[]>(ARTIST.albums);
+  const [heroTrack, setHeroTrack] = useState<any>(artistData.featuredTracks[Math.floor(Math.random() * artistData.featuredTracks.length)]);
+  const [randomizedAlbums, setRandomizedAlbums] = useState<any[]>(artistData.albums);
 
   useEffect(() => {
-    // Select a random track for the hero section
-    const randomIndex = Math.floor(Math.random() * ARTIST.featuredTracks.length);
-    setHeroTrack(ARTIST.featuredTracks[randomIndex]);
+    if (fullSortedCatalog.length > 0) {
+      setCurrentTrack(fullSortedCatalog[0]);
+    }
+  }, [artistData]);
 
-    // Shuffle albums for the discography section
-    const shuffled = [...ARTIST.albums].sort(() => Math.random() - 0.5);
+  useEffect(() => {
+    if (artistData.featuredTracks.length > 0) {
+      const randomIndex = Math.floor(Math.random() * artistData.featuredTracks.length);
+      setHeroTrack(artistData.featuredTracks[randomIndex]);
+    }
+    const shuffled = [...artistData.albums].sort(() => Math.random() - 0.5);
     setRandomizedAlbums(shuffled);
-  }, []);
+  }, [artistData]);
 
   const openVideo = (track: any, e?: React.MouseEvent) => {
     if (e) {
@@ -316,6 +388,18 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-8">
+        <div className="w-24 h-24 border-4 border-gold border-t-transparent rounded-full animate-spin shadow-[0_0_50px_rgba(212,175,55,0.3)]"></div>
+        <div className="text-center">
+          <h2 className="font-display text-4xl gold-text animate-pulse">CARGANDO INVENTARIO 614</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-[0.4em] mt-4 font-black">Syncing with Encryption Protocol // 614-SEC</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-ranch-black selection:bg-gold selection:text-black font-sans pb-24 md:pb-32 relative">
       <div className="scanline z-50 fixed pointer-events-none" />
@@ -344,7 +428,7 @@ export default function App() {
             className="flex items-center gap-4"
           >
             <div className="w-10 h-10 md:w-12 md:h-12 overflow-hidden border border-gold/50">
-              <img src={ARTIST.logo} alt="Logo" className="w-full h-full object-cover" />
+              <img src={artistData.logo} alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="font-display text-2xl md:text-3xl tracking-tighter gold-text leading-none">JUAN 614</h1>
@@ -360,7 +444,7 @@ export default function App() {
               </a>
             ))}
             <a 
-              href={ARTIST.socials.spotify} 
+              href={artistData.socials.spotify} 
               target="_blank" 
               rel="noopener noreferrer"
               className="bg-white text-black px-10 py-4 hover:bg-gold transition-all border-none font-black"
@@ -370,7 +454,7 @@ export default function App() {
           </div>
 
           <div className="lg:hidden">
-            <a href={ARTIST.socials.spotify} target="_blank" rel="noopener noreferrer" className="bg-gold text-black px-6 py-2 text-[10px] font-black uppercase tracking-widest">
+            <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="bg-gold text-black px-6 py-2 text-[10px] font-black uppercase tracking-widest">
               STREAM
             </a>
           </div>
@@ -417,10 +501,10 @@ export default function App() {
                 </div>
               </button>
               <div className="flex gap-4">
-                <a href={ARTIST.socials.spotify} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
+                <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
                   <Music2 size={24} />
                 </a>
-                <a href={ARTIST.socials.youtube} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
+                <a href={artistData.socials.youtube} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
                   <Youtube size={24} />
                 </a>
               </div>
@@ -624,7 +708,7 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {ARTIST.upcoming.map((item, idx) => (
+            {artistData.upcoming.map((item, idx) => (
               <motion.div 
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -709,7 +793,7 @@ export default function App() {
             </div>
           </motion.div>
           <div className="relative industrial-border p-4 bg-white/5 backdrop-blur-xl">
-            <img src={ARTIST.logo} alt="Juan 614 Bio" className="w-full aspect-[4/5] object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000" />
+            <img src={artistData.logo} alt="Juan 614 Bio" className="w-full aspect-[4/5] object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000" />
             <div className="absolute -bottom-6 -right-6 bg-gold text-black p-4 font-black text-xs uppercase tracking-widest rotate-3 shadow-xl">
               Verified Artist // 614-SEC
             </div>
@@ -848,12 +932,12 @@ export default function App() {
             <div>
               <h5 className="text-gold font-black uppercase tracking-widest text-[10px] mb-6 md:mb-8">Conéctate</h5>
               <div className="flex gap-6">
-                <a href={ARTIST.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Instagram size={24} /></a>
-                <a href={ARTIST.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all">
+                <a href={artistData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Instagram size={24} /></a>
+                <a href={artistData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
                 </a>
-                <a href={ARTIST.socials.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Youtube size={24} /></a>
-                <a href={ARTIST.socials.spotify} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Music2 size={24} /></a>
+                <a href={artistData.socials.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Youtube size={24} /></a>
+                <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-all"><Music2 size={24} /></a>
               </div>
             </div>
           </div>
