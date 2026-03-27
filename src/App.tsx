@@ -309,8 +309,6 @@ export default function App() {
 
           dataRows.forEach((row, idx) => {
             // Check if it's the specific "artist metadata" row or just a track
-            // Usually the artist info is in the very first row, so we still process it
-            // but check if row[0] (title) is present
             if (!row[0]) return;
             
             const track = {
@@ -323,7 +321,18 @@ export default function App() {
               releaseDate: row[5] || ""
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-            allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
+            
+            // Classification by date
+            if (releaseDate >= startOfToday) {
+              upcoming.push({
+                ...track,
+                displayDate: releaseDate.toLocaleDateString('es-MX'),
+                date: releaseDate.toISOString(),
+                link: track.spotifyUrl
+              });
+            } else {
+              allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
+            }
           });
         }
 
