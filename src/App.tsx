@@ -294,6 +294,7 @@ export default function App() {
         const allTracks: any[] = [];
         const upcoming: any[] = [];
         const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const newArtistData = { ...INITIAL_ARTIST };
 
         // Process Catalog Rows
@@ -340,7 +341,8 @@ export default function App() {
               releaseDate: row[1] || new Date().toISOString()
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-            if (releaseDate > now) {
+            // releases scheduled for today (startOfToday) stay in Upcoming
+            if (releaseDate >= startOfToday) {
               upcoming.push({
                 ...track,
                 displayDate: releaseDate.toLocaleDateString('es-MX'), // For UI Display
