@@ -322,17 +322,8 @@ export default function App() {
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
             
-            // Classification by date
-            if (releaseDate >= startOfToday) {
-              upcoming.push({
-                ...track,
-                displayDate: releaseDate.toLocaleDateString('es-MX'),
-                date: releaseDate.toISOString(),
-                link: track.spotifyUrl
-              });
-            } else {
-              allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
-            }
+            // All items from CATALOG sheet go to allTracks, never to upcoming
+            allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
           });
         }
 
