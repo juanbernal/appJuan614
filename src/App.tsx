@@ -307,8 +307,10 @@ export default function App() {
           }
 
           dataRows.forEach((row, idx) => {
-            // idx 0 is artist info, already handled above
-            if (idx === 0 || !row[0]) return;
+            // Check if it's the specific "artist metadata" row or just a track
+            // Usually the artist info is in the very first row, so we still process it
+            // but check if row[0] (title) is present
+            if (!row[0]) return;
             
             const track = {
               id: `cat-${idx}`,
@@ -451,7 +453,7 @@ export default function App() {
 
     const finalUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : urlStr;
     setModal({ isOpen: true, videoUrl: finalUrl });
-    setPlayerMode('full'); // Open in full screen by default
+    setPlayerMode('mini'); // Open in mini mode automatically as requested
   };
   
   const closeVideo = () => {
@@ -801,39 +803,57 @@ export default function App() {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {artistData.upcoming.map((item, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10 hover:border-gold transition-all"
-              >
-                <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
-                  <img src={item.cover} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            {/* Group Upcoming by Artist */}
+            {Object.entries(
+              artistData.upcoming.reduce((acc: any, item: any) => {
+                const artist = item.artist || 'Juan 614';
+                if (!acc[artist]) acc[artist] = [];
+                acc[artist].push(item);
+                return acc;
+              }, {})
+            ).map(([artistName, tracks]: [string, any]) => (
+              <div key={artistName} className="space-y-12">
+                <div className="flex items-center gap-4 border-b border-gold/20 pb-4">
+                   <div className="w-2 h-2 bg-gold" />
+                   <h4 className="text-xl md:text-2xl font-black uppercase tracking-[0.4em] text-white/60">
+                     Apartado: <span className="text-gold">{artistName}</span>
+                   </h4>
                 </div>
-                <div className="w-full md:w-1/2 text-center md:text-left">
-                  <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                    <Calendar size={16} className="text-gold" />
-                    <span className="text-gold font-black uppercase tracking-widest text-[10px]">{(item as any).displayDate || item.date}</span>
-                    <div className="h-4 w-[1px] bg-white/10 mx-2" />
-                    <CountdownTimer targetDate={item.date} />
-                  </div>
-                  <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
-                  <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
-                  <a 
-                    href={item.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-block w-full md:w-auto bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-gold transition-all text-center"
-                  >
-                    Pre-Save Now
-                  </a>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                  {tracks.map((item: any, idx: number) => (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10 hover:border-gold transition-all"
+                    >
+                      <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
+                        <img src={item.cover} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      </div>
+                      <div className="w-full md:w-1/2 text-center md:text-left">
+                        <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                          <Calendar size={16} className="text-gold" />
+                          <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.displayDate || item.date}</span>
+                          <div className="h-4 w-[1px] bg-white/10 mx-2" />
+                          <CountdownTimer targetDate={item.date} />
+                        </div>
+                        <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
+                        <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
+                        <a 
+                          href={item.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block w-full md:w-auto bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-gold transition-all text-center"
+                        >
+                          Pre-Save Now
+                        </a>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </div>
         </div>
       </section>
 
