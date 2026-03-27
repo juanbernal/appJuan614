@@ -308,8 +308,8 @@ export default function App() {
           }
 
           dataRows.forEach((row, idx) => {
-            // Check if it's the specific "artist metadata" row or just a track
-            if (!row[0]) return;
+            // idx 0 is artist metadata info, we skip it here as it was handled above
+            if (idx === 0 || !row[0]) return;
             
             const track = {
               id: `cat-${idx}`,
@@ -1026,6 +1026,34 @@ export default function App() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Christian Urban Music CTA */}
+      <section className="py-20 md:py-32 px-4 md:px-6 bg-black relative overflow-hidden text-center border-y border-gold/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center gap-6">
+            <Music2 className="text-gold animate-pulse" size={48} />
+            <h3 className="font-display text-4xl md:text-7xl uppercase italic tracking-tighter text-glow mb-2">
+              Música Urbana Cristiana
+            </h3>
+            <p className="text-white/60 text-lg md:text-xl font-serif italic mb-10">
+              ¿Buscas más de nuestra esencia con un mensaje diferente?
+            </p>
+            <a 
+              href="https://musica.diosmasgym.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative inline-block bg-white text-black px-12 py-6 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-gold shadow-2xl"
+            >
+              <span className="relative z-10">EXPLORAR AHORA</span>
+              <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </a>
+          </div>
+        </div>
+        {/* Background Decorative Text */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none whitespace-nowrap">
+          <p className="text-[30vw] font-display uppercase italic">GOD MUSIC GOD MUSIC</p>
         </div>
       </section>
 
