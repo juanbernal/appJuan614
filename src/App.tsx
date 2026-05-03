@@ -220,13 +220,13 @@ function VideoModal({ isOpen, onClose, videoUrl, playerMode, setPlayerMode }: {
           </button>
         </div>
         <iframe 
-          src={`${videoUrl}?autoplay=1`}
+          src={videoUrl}
           width="100%" 
           height="100%" 
           frameBorder="0" 
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
           allowFullScreen
-          referrerPolicy="no-referrer"
+          referrerPolicy="origin"
         />
       </motion.div>
     </motion.div>
@@ -548,7 +548,9 @@ export default function App() {
       videoId = urlStr.split('youtu.be/')[1]?.split('?')[0];
     }
 
-    const finalUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : urlStr;
+    const finalUrl = videoId 
+      ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}` 
+      : urlStr;
     setModal({ isOpen: true, videoUrl: finalUrl });
     setPlayerMode('mini'); // Open in mini mode automatically as requested
   };
