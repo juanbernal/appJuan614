@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Play,
@@ -21,10 +22,38 @@ import {
   Share2,
   Heart
 } from 'lucide-react';
+import ReactGA from 'react-ga4';
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
 const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
+const STUDIO_SESSION_URL = import.meta.env.VITE_STUDIO_SESSION_SHEET_URL;
+const COLLABORATORS_URL = import.meta.env.VITE_COLLABORATORS_SHEET_URL;
 const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
+
+// Initialize Google Analytics
+if (import.meta.env.VITE_GA4_MEASUREMENT_ID) {
+  ReactGA.initialize(import.meta.env.VITE_GA4_MEASUREMENT_ID);
+}
+
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+let messaging: any = null;
+try {
+  const app = initializeApp(firebaseConfig);
+  messaging = getMessaging(app);
+} catch (e) {
+  console.warn('Firebase initialization failed:', e);
+}
 
 // Artist Data
 // Initial data for hydration and fallbacks
@@ -301,6 +330,9 @@ export default function App() {
   const [playerMode, setPlayerMode] = useState<'full' | 'mini'>('full');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [studioSessions, setStudioSessions] = useState<any[]>([]);
+  const [collaborators, setCollaborators] = useState<any[]>([]);
+  const [notificationPermission, setNotificationPermission] = useState<'granted' | 'denied' | 'default'>('default');
 
   useEffect(() => {
     const fetchSheetData = async () => {
@@ -311,12 +343,28 @@ export default function App() {
           return;
         }
 
-        const [catRes, upRes] = await Promise.all([
+        const fetchPromises = [
           fetch(`${CATALOG_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }),
           fetch(`${UPCOMING_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
-        ]);
+        ];
 
+        if (STUDIO_SESSION_URL) {
+          fetchPromises.push(fetch(`${STUDIO_SESSION_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }));
+        }
+        if (COLLABORATORS_URL) {
+          fetchPromises.push(fetch(`${COLLABORATORS_URL}&t=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }));
+        }
+
+        const responses = await Promise.all(fetchPromises);
+        const [catRes, upRes, studioRes, collabRes] = responses;
+        
         const [catCsv, upCsv] = await Promise.all([catRes.text(), upRes.text()]);
+        
+        let studioCsv = '';
+        let collabCsv = '';
+        if (studioRes) studioCsv = await studioRes.text();
+        if (collabRes) collabCsv = await collabRes.text();
+
         const catRows = parseCSV(catCsv);
         const upRows = parseCSV(upCsv);
         
@@ -394,6 +442,35 @@ export default function App() {
           });
         }
 
+        // Process Studio Sessions
+        if (studioCsv) {
+          const studioRows = parseCSV(studioCsv);
+          const sessions = studioRows.slice(1).filter(row => row[0]).map((row, idx) => ({
+            id: `studio-${idx}`,
+            title: row[0],
+            description: row[1] || '',
+            videoUrl: row[2] || '',
+            cover: row[3] || '',
+            date: row[4] || ''
+          }));
+          console.log('Studio Sessions:', sessions);
+          setStudioSessions(sessions);
+        }
+
+        // Process Collaborators
+        if (collabCsv) {
+          const collabRows = parseCSV(collabCsv);
+          const collabs = collabRows.slice(1).filter(row => row[0]).map((row, idx) => ({
+            id: `collab-${idx}`,
+            name: row[0],
+            image: row[1] || '',
+            genre: row[2] || '',
+            socialLink: row[3] || ''
+          }));
+          console.log('Collaborators:', collabs);
+          setCollaborators(collabs);
+        }
+
         // Final Sort and Update
         allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
@@ -414,6 +491,43 @@ export default function App() {
     };
 
     fetchSheetData();
+  }, []);
+
+  // Request Push Notification Permission
+  useEffect(() => {
+    if (!messaging) return;
+    
+    const requestPermission = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        setNotificationPermission(permission as any);
+        
+        if (permission === 'granted') {
+          const token = await getToken(messaging, { 
+            vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY 
+          });
+          if (token) {
+            console.log('FCM Token:', token);
+            // Here you would send the token to your backend
+          }
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    };
+
+    requestPermission();
+
+    // Handle foreground messages
+    onMessage(messaging, (payload) => {
+      console.log('Message received:', payload);
+      if (payload.notification) {
+        new Notification(payload.notification.title || 'Juan 614', {
+          body: payload.notification.body || '',
+          icon: '/icon-192x192.png'
+        });
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -534,6 +648,43 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-ranch-black selection:bg-gold selection:text-black font-sans pb-24 md:pb-32 relative">
+      <Helmet>
+        <title>{artistData.name} | {artistData.genre} - Official Hub</title>
+        <meta name="description" content={artistData.bio} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="music.musician" />
+        <meta property="og:title" content={`${artistData.name} | Official Hub`} />
+        <meta property="og:description" content={artistData.bio} />
+        <meta property="og:image" content={artistData.logo} />
+        <meta property="og:url" content={window.location.href} />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${artistData.name} | Official Hub`} />
+        <meta name="twitter:description" content={artistData.bio} />
+        <meta name="twitter:image" content={artistData.logo} />
+        
+        {/* Schema.org JSON-LD */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "MusicGroup",
+            "name": artistData.name,
+            "genre": artistData.genre,
+            "description": artistData.bio,
+            "image": artistData.logo,
+            "sameAs": Object.values(artistData.socials),
+            "album": artistData.albums.slice(0, 5).map((album: any) => ({
+              "@type": "MusicAlbum",
+              "name": album.title,
+              "datePublished": album.releaseDate,
+              "image": album.cover
+            }))
+          })}
+        </script>
+      </Helmet>
+      
       <div className="scanline z-50 fixed pointer-events-none" />
       <AnimatePresence>
         {modal.isOpen && (
@@ -707,7 +858,7 @@ export default function App() {
               className="md:col-span-8 relative aspect-square md:aspect-auto md:h-[700px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
               onClick={(e) => openVideo(fullSortedCatalog[0], e)}
             >
-            <img src={fullSortedCatalog[0].cover} alt={fullSortedCatalog[0].title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" />
+            <img src={fullSortedCatalog[0].cover} alt={fullSortedCatalog[0].title} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
             
             <div className="absolute top-10 left-10 hidden md:block">
@@ -1116,35 +1267,148 @@ export default function App() {
         </div>
       </section>
 
-      {/* Christian Urban Music CTA */}
-      <section className="py-20 md:py-32 px-4 md:px-6 bg-black relative overflow-hidden text-center border-y border-gold/10">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center gap-6">
-            <Music2 className="text-gold animate-pulse" size={48} />
-            <h3 className="font-display text-4xl md:text-7xl uppercase italic tracking-tighter text-glow mb-2">
-              Música Urbana Cristiana
-            </h3>
-            <p className="text-white/60 text-lg md:text-xl font-serif italic mb-10">
-              ¿Buscas más de nuestra esencia con un mensaje diferente?
-            </p>
-            <a 
-              href="https://musica.diosmasgym.com/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="group relative inline-block bg-white text-black px-12 py-6 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-gold shadow-2xl"
-            >
-              <span className="relative z-10">EXPLORAR AHORA</span>
-              <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            </a>
-          </div>
-        </div>
-        {/* Background Decorative Text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none whitespace-nowrap">
-          <p className="text-[30vw] font-display uppercase italic">GOD MUSIC GOD MUSIC</p>
-        </div>
-      </section>
+       {/* Christian Urban Music CTA */}
+       <section className="py-20 md:py-32 px-4 md:px-6 bg-black relative overflow-hidden text-center border-y border-gold/10">
+         <div className="max-w-4xl mx-auto">
+           <div className="flex flex-col items-center gap-6">
+             <Music2 className="text-gold animate-pulse" size={48} />
+             <h3 className="font-display text-4xl md:text-7xl uppercase italic tracking-tighter text-glow mb-2">
+               Música Urbana Cristiana
+             </h3>
+             <p className="text-white/60 text-lg md:text-xl font-serif italic mb-10">
+               ¿Buscas más de nuestra esencia con un mensaje diferente?
+             </p>
+             <a 
+               href="https://musica.diosmasgym.com/" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="group relative inline-block bg-white text-black px-12 py-6 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-gold shadow-2xl"
+             >
+               <span className="relative z-10">EXPLORAR AHORA</span>
+               <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+             </a>
+           </div>
+         </div>
+         {/* Background Decorative Text */}
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none whitespace-nowrap">
+           <p className="text-[30vw] font-display uppercase italic">GOD MUSIC GOD MUSIC</p>
+         </div>
+       </section>
 
-      {/* Footer */}
+       {/* Studio Sessions Section */}
+       {studioSessions.length > 0 && (
+         <section className="py-24 md:py-40 px-4 md:px-6 bg-ranch-charcoal">
+           <div className="max-w-[1800px] mx-auto">
+             <div className="mb-16 md:mb-24">
+               <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
+                 Studio <br /> <span className="gold-text">Sessions</span>
+               </h3>
+               <p className="text-white/40 uppercase tracking-widest text-[10px] font-black mt-4">Demos • Acústicos • Detrás de cámaras</p>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               {studioSessions.map((session, idx) => (
+                 <motion.div 
+                   key={session.id}
+                   initial={{ opacity: 0, y: 20 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   className="group relative overflow-hidden border border-white/10 hover:border-gold transition-all"
+                 >
+                   {session.cover && (
+                     <img src={session.cover} alt={session.title} loading="lazy" className="w-full aspect-video object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                   )}
+                   <div className="p-6">
+                     <h4 className="text-2xl font-display uppercase italic mb-2">{session.title}</h4>
+                     <p className="text-white/60 text-sm mb-4">{session.description}</p>
+                     {session.videoUrl && (
+                       <a 
+                         href={session.videoUrl}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="inline-block bg-gold text-black px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all"
+                       >
+                         Ver Sesión
+                       </a>
+                     )}
+                   </div>
+                 </motion.div>
+               ))}
+             </div>
+           </div>
+         </section>
+       )}
+
+       {/* Collaborators Section */}
+       {collaborators.length > 0 && (
+         <section className="py-24 md:py-40 px-4 md:px-6">
+           <div className="max-w-[1800px] mx-auto">
+             <div className="mb-16 md:mb-24">
+               <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
+                 Colaboradores <br /> <span className="gold-text">Destacados</span>
+               </h3>
+             </div>
+             
+             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+               {collaborators.map((collab, idx) => (
+                 <motion.div
+                   key={collab.id}
+                   whileHover={{ scale: 1.05 }}
+                   className="group text-center"
+                 >
+                   <div className="w-full aspect-square overflow-hidden border-2 border-white/10 group-hover:border-gold transition-all mb-4">
+                     <img src={collab.image} alt={collab.name} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                   </div>
+                   <h4 className="font-display text-lg uppercase italic">{collab.name}</h4>
+                   <p className="text-[10px] text-white/40 uppercase tracking-widest">{collab.genre}</p>
+                   {collab.socialLink && (
+                     <a href={collab.socialLink} target="_blank" rel="noopener noreferrer" className="text-[8px] text-gold uppercase tracking-widest hover:text-white transition-colors">
+                       Ver perfil
+                     </a>
+                   )}
+                 </motion.div>
+               ))}
+             </div>
+           </div>
+         </section>
+       )}
+
+       {/* Interactive Timeline Section */}
+       <section className="py-24 md:py-40 px-4 md:px-6 bg-[#080808]">
+         <div className="max-w-[1800px] mx-auto">
+           <div className="mb-16 md:mb-24">
+             <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
+               Línea de <br /> <span className="gold-text">Tiempo</span>
+             </h3>
+           </div>
+           
+           <div className="relative border-l-2 border-gold/30 pl-8 md:pl-16 space-y-16">
+             {artistData.featuredTracks.slice(0, 5).map((track: any, idx: number) => (
+               <motion.div
+                 key={track.id}
+                 initial={{ opacity: 0, x: -20 }}
+                 whileInView={{ opacity: 1, x: 0 }}
+                 viewport={{ once: true }}
+                 className="relative"
+               >
+                 <div className="absolute -left-[41px] top-0 w-6 h-6 bg-gold border-4 border-black" />
+                 <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+                   <img src={track.cover} alt={track.title} loading="lazy" className="w-full md:w-48 aspect-square object-cover border border-white/10" />
+                   <div>
+                     <p className="text-gold font-black text-[10px] uppercase tracking-widest mb-2">
+                       {new Date(track.releaseDate).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+                     </p>
+                     <h4 className="text-3xl font-display uppercase italic mb-4">{track.title}</h4>
+                     <p className="text-white/60">{track.album}</p>
+                   </div>
+                 </div>
+               </motion.div>
+             ))}
+           </div>
+         </div>
+       </section>
+
+       {/* Footer */}
       <footer className="bg-black py-20 md:py-32 px-4 md:px-6 border-t border-white/10">
         <div className="max-w-[1800px] mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-20 mb-20 md:mb-32">

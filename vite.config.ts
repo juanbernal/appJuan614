@@ -7,26 +7,33 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   
   // Strict check for production build
-  const catalogUrl = process.env.VITE_CATALOG_SHEET_URL || env.VITE_CATALOG_SHEET_URL;
-  const upcomingUrl = process.env.VITE_UPCOMING_SHEET_URL || env.VITE_UPCOMING_SHEET_URL;
+   const catalogUrl = process.env.VITE_CATALOG_SHEET_URL || env.VITE_CATALOG_SHEET_URL;
+   const upcomingUrl = process.env.VITE_UPCOMING_SHEET_URL || env.VITE_UPCOMING_SHEET_URL;
+   const firebaseApiKey = process.env.VITE_FIREBASE_API_KEY || env.VITE_FIREBASE_API_KEY;
+   const ga4Id = process.env.VITE_GA4_MEASUREMENT_ID || env.VITE_GA4_MEASUREMENT_ID;
 
-  if (mode === 'production') {
-    if (!catalogUrl || !upcomingUrl) {
-      const availableKeys = Object.keys(process.env).filter(k => k.startsWith('VITE_'));
-      throw new Error(`
-        CRITICAL BUILD ERROR: Missing Spreadsheet URLs!
-        VITE_CATALOG_SHEET_URL: ${catalogUrl ? 'FOUND' : 'MISSING'}
-        VITE_UPCOMING_SHEET_URL: ${upcomingUrl ? 'FOUND' : 'MISSING'}
-        
-        Available VITE_ variables found in build: [${availableKeys.join(', ')}]
-        
-        Action required: 
-        1. Ensure "Production" environment is checked in Vercel Settings.
-        2. Ensure there are NO SPACES in the names.
-        3. Double check the Project name in Vercel.
-      `);
-    }
-  }
+   if (mode === 'production') {
+     const missingVars = [];
+     if (!catalogUrl) missingVars.push('VITE_CATALOG_SHEET_URL');
+     if (!upcomingUrl) missingVars.push('VITE_UPCOMING_SHEET_URL');
+     if (!firebaseApiKey) missingVars.push('VITE_FIREBASE_API_KEY');
+     if (!ga4Id) missingVars.push('VITE_GA4_MEASUREMENT_ID');
+     
+     if (missingVars.length > 0) {
+       const availableKeys = Object.keys(process.env).filter(k => k.startsWith('VITE_'));
+       throw new Error(`
+         CRITICAL BUILD ERROR: Missing environment variables!
+         Missing: ${missingVars.join(', ')}
+         
+         Available VITE_ variables found in build: [${availableKeys.join(', ')}]
+         
+         Action required: 
+         1. Ensure "Production" environment is checked in Vercel Settings.
+         2. Ensure there are NO SPACES in the names.
+         3. Double check the Project name in Vercel.
+       `);
+     }
+   }
 
   return {
     plugins: [react(), tailwindcss()],
