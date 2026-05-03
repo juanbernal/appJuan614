@@ -23,8 +23,6 @@ import {
   Heart
 } from 'lucide-react';
 import ReactGA from 'react-ga4';
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
 const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
@@ -35,24 +33,6 @@ const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
 // Initialize Google Analytics
 if (import.meta.env.VITE_GA4_MEASUREMENT_ID) {
   ReactGA.initialize(import.meta.env.VITE_GA4_MEASUREMENT_ID);
-}
-
-// Initialize Firebase
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
-
-let messaging: any = null;
-try {
-  const app = initializeApp(firebaseConfig);
-  messaging = getMessaging(app);
-} catch (e) {
-  console.warn('Firebase initialization failed:', e);
 }
 
 // Artist Data
@@ -332,7 +312,6 @@ export default function App() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [studioSessions, setStudioSessions] = useState<any[]>([]);
   const [collaborators, setCollaborators] = useState<any[]>([]);
-  const [notificationPermission, setNotificationPermission] = useState<'granted' | 'denied' | 'default'>('default');
 
   useEffect(() => {
     const fetchSheetData = async () => {
@@ -491,43 +470,6 @@ export default function App() {
     };
 
     fetchSheetData();
-  }, []);
-
-  // Request Push Notification Permission
-  useEffect(() => {
-    if (!messaging) return;
-    
-    const requestPermission = async () => {
-      try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission as any);
-        
-        if (permission === 'granted') {
-          const token = await getToken(messaging, { 
-            vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY 
-          });
-          if (token) {
-            console.log('FCM Token:', token);
-            // Here you would send the token to your backend
-          }
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-      }
-    };
-
-    requestPermission();
-
-    // Handle foreground messages
-    onMessage(messaging, (payload) => {
-      console.log('Message received:', payload);
-      if (payload.notification) {
-        new Notification(payload.notification.title || 'Juan 614', {
-          body: payload.notification.body || '',
-          icon: '/icon-192x192.png'
-        });
-      }
-    });
   }, []);
 
   useEffect(() => {

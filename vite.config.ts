@@ -9,14 +9,12 @@ export default defineConfig(({mode}) => {
   // Strict check for production build
    const catalogUrl = process.env.VITE_CATALOG_SHEET_URL || env.VITE_CATALOG_SHEET_URL;
    const upcomingUrl = process.env.VITE_UPCOMING_SHEET_URL || env.VITE_UPCOMING_SHEET_URL;
-   const firebaseApiKey = process.env.VITE_FIREBASE_API_KEY || env.VITE_FIREBASE_API_KEY;
    const ga4Id = process.env.VITE_GA4_MEASUREMENT_ID || env.VITE_GA4_MEASUREMENT_ID;
 
    if (mode === 'production') {
      const missingVars = [];
      if (!catalogUrl) missingVars.push('VITE_CATALOG_SHEET_URL');
      if (!upcomingUrl) missingVars.push('VITE_UPCOMING_SHEET_URL');
-     if (!firebaseApiKey) missingVars.push('VITE_FIREBASE_API_KEY');
      if (!ga4Id) missingVars.push('VITE_GA4_MEASUREMENT_ID');
      
      if (missingVars.length > 0) {
