@@ -6,16 +6,14 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   
-  // Strict check for production build
+  // Strict check for production build - only critical sheet URLs required
    const catalogUrl = process.env.VITE_CATALOG_SHEET_URL || env.VITE_CATALOG_SHEET_URL;
    const upcomingUrl = process.env.VITE_UPCOMING_SHEET_URL || env.VITE_UPCOMING_SHEET_URL;
-   const ga4Id = process.env.VITE_GA4_MEASUREMENT_ID || env.VITE_GA4_MEASUREMENT_ID;
 
    if (mode === 'production') {
      const missingVars = [];
      if (!catalogUrl) missingVars.push('VITE_CATALOG_SHEET_URL');
      if (!upcomingUrl) missingVars.push('VITE_UPCOMING_SHEET_URL');
-     if (!ga4Id) missingVars.push('VITE_GA4_MEASUREMENT_ID');
      
      if (missingVars.length > 0) {
        const availableKeys = Object.keys(process.env).filter(k => k.startsWith('VITE_'));
@@ -30,6 +28,12 @@ export default defineConfig(({mode}) => {
          2. Ensure there are NO SPACES in the names.
          3. Double check the Project name in Vercel.
        `);
+     }
+     
+     // Warning for optional GA4
+     const ga4Id = process.env.VITE_GA4_MEASUREMENT_ID || env.VITE_GA4_MEASUREMENT_ID;
+     if (!ga4Id) {
+       console.warn('WARNING: VITE_GA4_MEASUREMENT_ID not set. Google Analytics will be disabled.');
      }
    }
 
