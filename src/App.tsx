@@ -93,7 +93,10 @@ const parseCSV = (csv: string) => {
 
 // Robust date parser for spreadsheet dates (handles ISO and DD/MM/YYYY)
 const parseReleaseDate = (dateStr: string) => {
-  if (!dateStr) return new Date();
+  if (!dateStr) {
+    console.warn('No release date provided, using current date');
+    return new Date();
+  }
   
   // Try ISO first
   let date = new Date(dateStr);
@@ -108,6 +111,7 @@ const parseReleaseDate = (dateStr: string) => {
     }
   }
   
+  console.warn(`Invalid date format: ${dateStr}, using current date`);
   return new Date();
 };
 
@@ -316,6 +320,9 @@ export default function App() {
         const catRows = parseCSV(catCsv);
         const upRows = parseCSV(upCsv);
         
+        console.log('Catalog Sheet Rows:', catRows);
+        console.log('Upcoming Sheet Rows:', upRows);
+        
         const allTracks: any[] = [];
         const upcoming: any[] = [];
         const now = new Date();
@@ -346,6 +353,7 @@ export default function App() {
               releaseDate: row[5] || ""
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
+            console.log('Catalog Track:', track.title, 'Release Date:', track.releaseDate, 'Parsed:', releaseDate);
             
             // All items from CATALOG sheet go to allTracks, never to upcoming
             allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
@@ -354,6 +362,10 @@ export default function App() {
 
         // Process Upcoming Rows
         if (upRows.length > 1) {
+          // Include releases from last 30 days in Upcoming section
+          const thirtyDaysAgo = new Date(startOfToday);
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          
           upRows.forEach((row, idx) => {
             if (!row[0] || (row[0].toLowerCase() === 'name' && idx === 0)) return;
             const track = {
@@ -366,8 +378,10 @@ export default function App() {
               releaseDate: row[1] || new Date().toISOString()
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-            // releases scheduled for today (startOfToday) stay in Upcoming
-            if (releaseDate >= startOfToday) {
+            console.log('Upcoming Track:', track.title, 'Release Date:', releaseDate, 'Show in Upcoming:', releaseDate >= thirtyDaysAgo);
+            
+            // Show in Upcoming if release is within last 30 days or future
+            if (releaseDate >= thirtyDaysAgo) {
               upcoming.push({
                 ...track,
                 displayDate: releaseDate.toLocaleDateString('es-MX'), // For UI Display
@@ -382,6 +396,9 @@ export default function App() {
 
         // Final Sort and Update
         allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+
+        console.log('Final allTracks (sorted):', allTracks.map(t => ({ title: t.title, releaseDate: t.releaseDate })));
+        console.log('Final upcoming:', upcoming.map(t => ({ title: t.title, date: t.date })));
 
         setArtistData({
           ...newArtistData,
