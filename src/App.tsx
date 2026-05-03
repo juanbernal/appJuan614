@@ -7,19 +7,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Play, 
-  Pause, 
-  Instagram, 
-  Youtube, 
-  Music2, 
-  ExternalLink, 
-  ChevronRight, 
-  Disc, 
+import {
+  Play,
+  Pause,
+  Instagram,
+  Youtube,
+  Music2,
+  ExternalLink,
+  ChevronRight,
+  Disc,
   TrendingUp,
   Calendar,
-  Users,
-  Volume2,
   Share2,
   Heart
 } from 'lucide-react';
@@ -556,7 +554,7 @@ export default function App() {
           </motion.div>
           
           <div className="hidden lg:flex gap-12 items-center text-[10px] uppercase tracking-[0.4em] font-black">
-            {['Estrenos', 'Próximos', 'Albumes', 'Bio', 'Contacto'].map((item) => (
+            {['Estrenos', 'Próximos', 'Albumes', 'Bio', 'Tour'].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-gold transition-colors relative group">
                 {item}
                 <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-gold transition-all group-hover:w-full"></span>
@@ -832,8 +830,9 @@ export default function App() {
             </h3>
           </div>
 
-            {/* Group Upcoming by Artist */}
-            {Object.entries(
+          {(artistData.upcoming.length > 0) ? (
+            /* Group Upcoming by Artist */
+            Object.entries(
               artistData.upcoming.reduce((acc: any, item: any) => {
                 const artist = item.artist || 'Juan 614';
                 if (!acc[artist]) acc[artist] = [];
@@ -850,7 +849,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                   {tracks.map((item: any, idx: number) => (
-                    <motion.div 
+                    <motion.div
                       key={idx}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -869,9 +868,9 @@ export default function App() {
                         </div>
                         <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
                         <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
-                        <a 
-                          href={item.link} 
-                          target="_blank" 
+                        <a
+                          href={item.link}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="inline-block w-full md:w-auto bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-gold transition-all text-center"
                         >
@@ -882,7 +881,36 @@ export default function App() {
                   ))}
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            /* Show sample data when no upcoming releases */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+              {[
+                { title: "Lo Mejor Que Puedo Darte", date: "2026-05-15", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg" },
+                { title: "Familia Pirata", date: "2026-06-01", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg" }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10"
+                >
+                  <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
+                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="w-full md:w-1/2 text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                      <Calendar size={16} className="text-gold" />
+                      <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.date}</span>
+                    </div>
+                    <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
+                    <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Próximamente</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -984,52 +1012,36 @@ export default function App() {
         </div>
       </section>
 
-      {/* Contact / Booking Section */}
-      <section id="contacto" className="py-24 md:py-40 px-4 md:px-6 bg-gold text-black overflow-hidden relative">
-        <div className="max-w-[1200px] mx-auto text-center relative z-10">
-          <div className="flex flex-col items-center mb-12">
-            <Share2 className="mb-6 mb-8 animate-bounce" size={48} />
+      {/* Tour Section */}
+      <section id="tour" className="py-24 md:py-40 px-4 md:px-6 bg-gold text-black overflow-hidden relative">
+        <div className="max-w-[1200px] mx-auto relative z-10">
+          <div className="mb-16 md:mb-24">
+            <p className="text-black/40 font-black uppercase tracking-[0.4em] text-[10px] mb-4">Live Protocol</p>
             <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none">
-              Transmission <br /> <span className="text-white drop-shadow-lg">Channel</span>
+              Tour <br /> <span className="text-white drop-shadow-lg">Dates</span>
             </h3>
           </div>
-          <p className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] mb-20 italic">
-            Lleva la energía de Juan 614 a tu sector
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            <div className="p-10 border-4 border-black bg-white/10 backdrop-blur-sm group hover:bg-black transition-all">
-              <Users className="mx-auto mb-6 group-hover:text-gold transition-colors" size={40} />
-              <h5 className="font-black uppercase tracking-widest text-[10px] mb-4 opacity-40">Management Unit</h5>
-              <p className="font-serif italic font-black text-xl group-hover:text-white transition-colors">booking@juan614.com</p>
-            </div>
-            <div className="p-10 border-4 border-black bg-white/10 backdrop-blur-sm group hover:bg-black transition-all">
-              <Share2 className="mx-auto mb-6 group-hover:text-gold transition-colors" size={40} />
-              <h5 className="font-black uppercase tracking-widest text-[10px] mb-4 opacity-40">Press Liaison</h5>
-              <p className="font-serif italic font-black text-xl group-hover:text-white transition-colors">press@diosmasgym.com</p>
-            </div>
-            <div className="p-10 border-4 border-black bg-white/10 backdrop-blur-sm group hover:bg-black transition-all">
-              <Volume2 className="mx-auto mb-6 group-hover:text-gold transition-colors" size={40} />
-              <h5 className="font-black uppercase tracking-widest text-[10px] mb-4 opacity-40">Creative Demos</h5>
-              <p className="font-serif italic font-black text-xl group-hover:text-white transition-colors">demos@614records.com</p>
-            </div>
+          <div className="space-y-4">
+            {artistData.tour.map((show: any, idx: number) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="group flex flex-col md:flex-row justify-between items-start md:items-center p-8 border-4 border-black bg-white/10 hover:bg-black hover:text-white transition-all"
+              >
+                <div>
+                  <p className="font-display text-3xl md:text-5xl uppercase italic">{show.city}</p>
+                  <p className="font-black uppercase tracking-[0.3em] text-[10px] mt-2 opacity-40">{show.venue}</p>
+                </div>
+                <div className="mt-4 md:mt-0 flex items-center gap-4">
+                  <Calendar size={20} />
+                  <span className="font-black text-xl md:text-2xl">{show.date}</span>
+                </div>
+              </motion.div>
+            ))}
           </div>
-          
-          <div className="mt-24">
-            <a 
-              href={`mailto:booking@juan614.com`}
-              className="group relative inline-block bg-black text-white px-20 py-8 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-white hover:text-black shadow-2xl"
-            >
-              <span className="relative z-10 flex items-center gap-4">
-                UP-LINK MESSAGE <ChevronRight size={20} />
-              </span>
-            </a>
-          </div>
-        </div>
-        
-        {/* Background Text */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
-          <p className="text-[40vw] font-display uppercase italic whitespace-nowrap">CONTACT CONTACT</p>
         </div>
       </section>
 
@@ -1133,7 +1145,7 @@ export default function App() {
                 <li><a href="#tour" className="hover:text-gold transition-colors">Gira</a></li>
                 <li><a href="#gallery" className="hover:text-gold transition-colors">Galería</a></li>
                 <li><a href="#bio" className="hover:text-gold transition-colors">Biografía</a></li>
-                <li><a href="#contact" className="hover:text-gold transition-colors">Contacto</a></li>
+                <li><a href="#tour" className="hover:text-gold transition-colors">Tour</a></li>
               </ul>
             </div>
             <div>
