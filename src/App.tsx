@@ -43,7 +43,7 @@ const INITIAL_ARTIST = {
   bio: "La cara de pera. Lengua larga. Ya basta. Muerde como serpiente. Corazones rotos dolidos. Juan 614 es la nueva voz de las calles, trayendo una energía cruda y única a la escena urbana regional desde Chihuahua.",
   spotifyId: "0vEKa5AOcBkQVXNfGb2FNh",
   logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
-  _debug: { catalogUrlSet: !!CATALOG_URL, upcomingUrlSet: !!UPCOMING_URL },
+
   socials: {
     instagram: "https://www.instagram.com/juan614oficial",
     youtube: "https://www.youtube.com/@juan614",
@@ -226,6 +226,7 @@ function VideoModal({ isOpen, onClose, videoUrl, playerMode, setPlayerMode }: {
           frameBorder="0" 
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
           allowFullScreen
+          referrerPolicy="no-referrer"
         />
       </motion.div>
     </motion.div>
@@ -346,10 +347,8 @@ export default function App() {
 
         const catRows = parseCSV(catCsv);
         const upRows = parseCSV(upCsv);
-        
-        console.log('Catalog Sheet Rows:', catRows);
-        console.log('Upcoming Sheet Rows:', upRows);
-        
+
+
         const allTracks: any[] = [];
         const upcoming: any[] = [];
         const now = new Date();
@@ -380,7 +379,7 @@ export default function App() {
               releaseDate: row[5] || ""
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-            console.log('Catalog Track:', track.title, 'Release Date:', track.releaseDate, 'Parsed:', releaseDate);
+
             
             // All items from CATALOG sheet go to allTracks, never to upcoming
             allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
@@ -405,7 +404,7 @@ export default function App() {
               releaseDate: row[1] || new Date().toISOString()
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-            console.log('Upcoming Track:', track.title, 'Release Date:', releaseDate, 'Show in Upcoming:', releaseDate >= thirtyDaysAgo);
+
             
             // Show in Upcoming if release is within last 30 days or future
             if (releaseDate >= thirtyDaysAgo) {
@@ -432,7 +431,7 @@ export default function App() {
             cover: row[3] || '',
             date: row[4] || ''
           }));
-          console.log('Studio Sessions:', sessions);
+
           setStudioSessions(sessions);
         }
 
@@ -446,15 +445,13 @@ export default function App() {
             genre: row[2] || '',
             socialLink: row[3] || ''
           }));
-          console.log('Collaborators:', collabs);
+
           setCollaborators(collabs);
         }
 
         // Final Sort and Update
         allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
-        console.log('Final allTracks (sorted):', allTracks.map(t => ({ title: t.title, releaseDate: t.releaseDate })));
-        console.log('Final upcoming:', upcoming.map(t => ({ title: t.title, date: t.date })));
 
         setArtistData({
           ...newArtistData,

@@ -39,9 +39,8 @@ export default defineConfig(({mode}) => {
 
   return {
     plugins: [react(), tailwindcss()],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY || env.GEMINI_API_KEY),
-    },
+    // NOTE: Do NOT expose API keys to the client via `define`.
+    // Use Vercel serverless functions (api/) for any server-side API calls.
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
