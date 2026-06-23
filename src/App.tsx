@@ -23,6 +23,8 @@ import {
   Heart
 } from 'lucide-react';
 import ReactGA from 'react-ga4';
+import Store from './sections/Store';
+import Newsletter from './sections/Newsletter';
 
 const CATALOG_URL = import.meta.env.VITE_CATALOG_SHEET_URL;
 const UPCOMING_URL = import.meta.env.VITE_UPCOMING_SHEET_URL;
@@ -1348,6 +1350,9 @@ export default function App() {
            </div>
          </div>
        </section>
+
+       <Store />
+       <Newsletter />
 
        {/* Footer */}
       <footer className="bg-black py-20 md:py-32 px-4 md:px-6 border-t border-white/10">
