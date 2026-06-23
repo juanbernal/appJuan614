@@ -8,21 +8,28 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Play,
-  Pause,
-  Instagram,
-  Youtube,
-  Music2,
-  ExternalLink,
-  ChevronRight,
-  Disc,
-  TrendingUp,
-  Calendar,
-  Share2,
-  Heart
-} from 'lucide-react';
 import ReactGA from 'react-ga4';
+import { Music2 } from 'lucide-react';
+
+// Utils
+import { INITIAL_ARTIST, parseCSV, parseReleaseDate } from './utils/helpers';
+
+// Components
+import VideoModal from './components/VideoModal';
+import GlobalPlayer from './components/GlobalPlayer';
+import Navigation from './components/Navigation';
+import Footer from './components/Footer';
+
+// Sections
+import HeroSection from './sections/HeroSection';
+import InventorySection from './sections/InventorySection';
+import UpcomingSection from './sections/UpcomingSection';
+import BioSection from './sections/BioSection';
+import { MilestonesSection, TourSection } from './sections/MilestonesAndTourSections';
+import AlbumsSection from './sections/AlbumsSection';
+import StudioSessionsSection from './sections/StudioSessionsSection';
+import CollaboratorsSection from './sections/CollaboratorsSection';
+import TimelineSection from './sections/TimelineSection';
 import Store from './sections/Store';
 import Newsletter from './sections/Newsletter';
 
@@ -35,274 +42,6 @@ const SHEET_URL = CATALOG_URL; // Fallback for any legacy references
 // Initialize Google Analytics
 if (import.meta.env.VITE_GA4_MEASUREMENT_ID) {
   ReactGA.initialize(import.meta.env.VITE_GA4_MEASUREMENT_ID);
-}
-
-// Artist Data
-// Initial data for hydration and fallbacks
-const INITIAL_ARTIST = {
-  name: "JUAN 614",
-  genre: "CORRIDOS TUMBADOS • URBANO",
-  bio: "La cara de pera. Lengua larga. Ya basta. Muerde como serpiente. Corazones rotos dolidos. Juan 614 es la nueva voz de las calles, trayendo una energía cruda y única a la escena urbana regional desde Chihuahua.",
-  spotifyId: "0vEKa5AOcBkQVXNfGb2FNh",
-  logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
-
-  socials: {
-    instagram: "https://www.instagram.com/juan614oficial",
-    youtube: "https://www.youtube.com/@juan614",
-    spotify: "https://open.spotify.com/intl-es/artist/0vEKa5AOcBkQVXNfGb2FNh",
-    tiktok: "https://tiktok.com/@juan614oficial",
-    facebook: "https://www.facebook.com/juan614oficial",
-    apple: "https://music.apple.com/artist/juan-614/1725514668"
-  },
-  featuredTracks: [
-    { id: "1", title: "Lo Mejor Que Puedo Darte", album: "Single", duration: "3:45", spotifyUrl: "https://www.youtube.com/embed/YQmozpauppM", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg", releaseDate: "2026-02-12T10:03:34Z" },
-    { id: "2", title: "Familia Pirata", album: "Single", duration: "3:20", spotifyUrl: "https://www.youtube.com/embed/Z0lMPVUYKnQ", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg", releaseDate: "2026-02-10T10:00:00Z" }
-  ],
-  albums: [],
-  upcoming: [],
-  tour: [
-    { city: "Chihuahua, MX", venue: "Arena Chihuahua", date: "15 Mayo" },
-    { city: "Monterrey, MX", venue: "Auditorio Citibanamex", date: "22 Mayo" },
-    { city: "CDMX, MX", venue: "Pepsi Center WTC", date: "29 Mayo" },
-    { city: "Los Angeles, CA", venue: "The Wiltern", date: "05 Junio" },
-    { city: "Phoenix, AZ", venue: "Arizona Financial Theatre", date: "12 Junio" }
-  ],
-  gallery: [
-    "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=800&auto=format&fit=crop"
-  ]
-};
-
-
-
-// Simple CSV parser that handles quotes and commas
-const parseCSV = (csv: string) => {
-  const lines = csv.split(/\r?\n/);
-  return lines.map(line => {
-    const result = [];
-    let cur = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            result.push(cur.trim());
-            cur = '';
-        } else {
-            cur += char;
-        }
-    }
-    result.push(cur.trim());
-    return result;
-  });
-};
-
-// Robust date parser for spreadsheet dates (handles ISO and DD/MM/YYYY)
-const parseReleaseDate = (dateStr: string) => {
-  if (!dateStr) {
-    console.warn('No release date provided, using current date');
-    return new Date();
-  }
-  
-  // Try ISO first
-  let date = new Date(dateStr);
-  if (!isNaN(date.getTime())) return date;
-  
-  // Try DD/MM/YYYY
-  if (dateStr.includes('/')) {
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-      if (!isNaN(date.getTime())) return date;
-    }
-  }
-  
-  console.warn(`Invalid date format: ${dateStr}, using current date`);
-  return new Date();
-};
-
-function CountdownTimer({ targetDate }: { targetDate: string }) {
-  const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number } | null>(null);
-
-  useEffect(() => {
-    const calculate = () => {
-      const date = parseReleaseDate(targetDate);
-      const difference = date.getTime() - new Date().getTime();
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        });
-      } else {
-        setTimeLeft(null);
-      }
-    };
-
-    const timer = setInterval(calculate, 1000);
-    calculate();
-    return () => clearInterval(timer);
-  }, [targetDate]);
-
-  if (!timeLeft) return <span className="text-gold">ESTRENO INMINENTE</span>;
-
-  return (
-    <div className="flex gap-4">
-      {[
-        { label: 'D', val: timeLeft.days },
-        { label: 'H', val: timeLeft.hours },
-        { label: 'M', val: timeLeft.minutes },
-        { label: 'S', val: timeLeft.seconds }
-      ].map((item, i) => (
-        <div key={i} className="text-center">
-          <p className="text-xl md:text-2xl font-display text-white leading-none">{item.val.toString().padStart(2, '0')}</p>
-          <p className="text-[6px] text-gold font-black uppercase mt-1">{item.label}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-import { Maximize2, Minimize2, X } from 'lucide-react';
-
-function VideoModal({ isOpen, onClose, videoUrl, playerMode, setPlayerMode }: { 
-  isOpen: boolean, 
-  onClose: () => void, 
-  videoUrl: string,
-  playerMode: 'full' | 'mini',
-  setPlayerMode: (mode: 'full' | 'mini') => void
-}) {
-  if (!isOpen) return null;
-
-  const isMini = playerMode === 'mini';
-
-  return (
-    <motion.div 
-      initial={isMini ? { scale: 0.5, opacity: 0, x: 100, y: 100 } : { opacity: 0 }}
-      animate={isMini ? { scale: 1, opacity: 1, x: 0, y: 0 } : { opacity: 1 }}
-      exit={isMini ? { scale: 0.5, opacity: 0, x: 100, y: 100 } : { opacity: 0 }}
-      className={isMini 
-        ? "fixed bottom-24 right-4 md:bottom-32 md:right-10 z-[100] w-72 md:w-[400px] aspect-video bg-black border-2 border-gold shadow-2xl overflow-visible"
-        : "fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/95 backdrop-blur-xl"
-      }
-      onClick={isMini ? undefined : onClose}
-    >
-      <motion.div 
-        layout
-        initial={isMini ? false : { scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className={isMini 
-          ? "relative w-full h-full"
-          : "relative w-full max-w-6xl aspect-video bg-black border-4 border-gold shadow-[0_0_50px_rgba(212,175,55,0.3)]"
-        }
-        onClick={e => e.stopPropagation()}
-      >
-        <div className={`absolute ${isMini ? '-top-10 left-0 right-0' : '-top-12 right-0'} flex items-center justify-end gap-4`}>
-          <button 
-            onClick={() => setPlayerMode(isMini ? 'full' : 'mini')}
-            className="text-white hover:text-gold transition-colors flex items-center gap-2 font-black uppercase tracking-widest text-[10px]"
-          >
-            {isMini ? 'Expandir' : 'Minimizar'} 
-            <span className="w-8 h-8 bg-gold text-black flex items-center justify-center">
-              {isMini ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
-            </span>
-          </button>
-          <button 
-            onClick={onClose}
-            className="text-white hover:text-gold transition-colors flex items-center gap-2 font-black uppercase tracking-widest text-[10px]"
-          >
-            Cerrar <span className="w-8 h-8 bg-accent-red text-white flex items-center justify-center"><X size={16} /></span>
-          </button>
-        </div>
-        <iframe 
-          src={videoUrl}
-          width="100%" 
-          height="100%" 
-          frameBorder="0" 
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-          allowFullScreen
-          referrerPolicy="origin"
-        />
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function Visualizer({ isPlaying }: { isPlaying: boolean }) {
-  return (
-    <div className="flex items-end gap-[3px] h-10 px-4">
-      {[...Array(15)].map((_, i) => (
-        <motion.div
-          key={i}
-          animate={isPlaying ? {
-            height: [4, Math.random() * 32 + 4, 4],
-            opacity: [0.5, 1, 0.5]
-          } : { height: 4, opacity: 0.3 }}
-          transition={isPlaying ? {
-            duration: 0.4 + Math.random() * 0.4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          } : { duration: 0.5 }}
-          className="w-1 bg-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]"
-        />
-      ))}
-    </div>
-  );
-}
-
-function GlobalPlayer({ currentTrack, isPlaying, onTogglePlay }: { currentTrack: any, isPlaying: boolean, onTogglePlay: () => void }) {
-  if (!currentTrack) return null;
-
-  return (
-    <motion.div 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 w-full z-[80] bg-black/95 backdrop-blur-2xl border-t border-gold/30"
-    >
-      {/* Visualizer Top Bar */}
-      <div className="absolute -top-10 left-0 w-full flex justify-center pointer-events-none">
-        <Visualizer isPlaying={isPlaying} />
-      </div>
-
-      <div className="max-w-[1800px] mx-auto flex items-center justify-between gap-6 p-4 md:p-6">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 md:w-16 md:h-16 overflow-hidden industrial-border">
-            <img src={currentTrack?.cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200&auto=format&fit=crop'} alt={currentTrack?.title} className="w-full h-full object-cover" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="font-display text-lg md:text-xl uppercase italic gold-text truncate">{currentTrack?.title}</h4>
-            <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/40 font-black">Juan 614 • {currentTrack?.album}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-8">
-          <button 
-            onClick={onTogglePlay}
-            className="w-12 h-12 md:w-16 md:h-16 bg-gold text-black flex items-center justify-center rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.4)]"
-          >
-            {isPlaying ? <Pause fill="black" size={24} /> : <Play fill="black" size={24} className="ml-1" />}
-          </button>
-        </div>
-
-        <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
-          <div className="flex flex-col items-end">
-            <div className="flex gap-4 text-white/40">
-              <Heart className="hover:text-accent-red cursor-pointer transition-colors" size={20} />
-              <Share2 className="hover:text-gold cursor-pointer transition-colors" size={20} />
-            </div>
-            <p className="text-[8px] uppercase tracking-widest mt-2 font-black text-gold/50">Reproduciendo desde 614 HUB</p>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
 }
 
 export default function App() {
@@ -350,7 +89,6 @@ export default function App() {
         const catRows = parseCSV(catCsv);
         const upRows = parseCSV(upCsv);
 
-
         const allTracks: any[] = [];
         const upcoming: any[] = [];
         const now = new Date();
@@ -368,7 +106,6 @@ export default function App() {
           }
 
           dataRows.forEach((row, idx) => {
-            // idx 0 is artist metadata info, we skip it here as it was handled above
             if (idx === 0 || !row[0]) return;
             
             const track = {
@@ -381,16 +118,13 @@ export default function App() {
               releaseDate: row[5] || ""
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-
             
-            // All items from CATALOG sheet go to allTracks, never to upcoming
             allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
           });
         }
 
         // Process Upcoming Rows
         if (upRows.length > 1) {
-          // Include releases from last 30 days in Upcoming section
           const thirtyDaysAgo = new Date(startOfToday);
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
           
@@ -406,9 +140,7 @@ export default function App() {
               releaseDate: row[1] || new Date().toISOString()
             };
             const releaseDate = parseReleaseDate(track.releaseDate);
-
             
-            // Show in Upcoming if release is within last 30 days or future
             if (releaseDate >= thirtyDaysAgo) {
               upcoming.push({
                 ...track,
@@ -454,7 +186,6 @@ export default function App() {
         // Final Sort and Update
         allTracks.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
-
         setArtistData({
           ...newArtistData,
           featuredTracks: allTracks.slice(0, 5),
@@ -495,7 +226,6 @@ export default function App() {
     setDeferredPrompt(null);
   };
   
-  // Create a unified catalog sorted by releaseDate
   const fullSortedCatalog = [
     ...artistData.featuredTracks,
     ...artistData.albums.filter(alb => !artistData.featuredTracks.find(ft => ft.title === alb.title))
@@ -503,7 +233,6 @@ export default function App() {
    .map((item, idx) => ({
       ...item,
       assetId: `#${String(idx + 1).padStart(3, '0')}-614`,
-      // Normalize link/spotifyUrl
       playUrl: 'spotifyUrl' in item ? (item as any).spotifyUrl : (item as any).link
    }));
 
@@ -538,7 +267,6 @@ export default function App() {
     }
     setCurrentTrack(track);
     setIsPlaying(true);
-    // Use normalized playUrl or detect YouTube ID from link
     let videoId = '';
     const urlStr = track.spotifyUrl || track.link || '';
     
@@ -554,7 +282,7 @@ export default function App() {
       ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}` 
       : urlStr;
     setModal({ isOpen: true, videoUrl: finalUrl });
-    setPlayerMode('mini'); // Open in mini mode automatically as requested
+    setPlayerMode('mini'); 
   };
   
   const closeVideo = () => {
@@ -647,118 +375,9 @@ export default function App() {
         onTogglePlay={togglePlay}
       />
 
-      {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/5 py-4' : 'bg-transparent py-8'}`}>
-        <div className="max-w-[1800px] mx-auto px-4 md:px-6 flex justify-between items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4"
-          >
-            <div className="w-10 h-10 md:w-12 md:h-12 overflow-hidden border border-gold/50">
-              <img src={artistData.logo} alt="Logo" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl md:text-3xl tracking-tighter gold-text leading-none">JUAN 614</h1>
-              <p className="text-[8px] uppercase tracking-[0.3em] text-white/40 font-black gold-shimmer bg-clip-text">Official Hub</p>
-            </div>
-          </motion.div>
-          
-          <div className="hidden lg:flex gap-12 items-center text-[10px] uppercase tracking-[0.4em] font-black">
-            {['Estrenos', 'Próximos', 'Albumes', 'Bio', 'Tour'].map((item) => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-gold transition-colors relative group">
-                {item}
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-gold transition-all group-hover:w-full"></span>
-              </a>
-            ))}
-            <a 
-              href={artistData.socials.spotify} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-white text-black px-10 py-4 hover:bg-gold transition-all border-none font-black"
-            >
-              STREAM NOW
-            </a>
-          </div>
+      <Navigation scrolled={scrolled} artistData={artistData} />
 
-          <div className="lg:hidden">
-            <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="bg-gold text-black px-6 py-2 text-[10px] font-black uppercase tracking-widest">
-              STREAM
-            </a>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section - Centralizing Music */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-t from-ranch-black via-ranch-black/40 to-transparent z-10" />
-          <div className="absolute inset-0 bg-black/40 z-10" />
-            <motion.img 
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.5 }}
-              transition={{ duration: 2 }}
-              src={heroTrack?.cover || artistData.logo} 
-              alt="Juan 614 Hero"
-              className="w-full h-full object-cover grayscale"
-              referrerPolicy="no-referrer"
-            />
-        </div>
-
-        <div className="relative z-20 w-full max-w-[1800px] mx-auto px-4 md:px-10 flex flex-col md:flex-row items-end justify-between gap-12">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="max-w-4xl"
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <span className="w-12 h-[2px] bg-gold" />
-              <span className="font-black text-gold uppercase tracking-[0.5em] text-xs">Featured Single</span>
-            </div>
-            <h2 className="font-display text-[15vw] md:text-[12vw] leading-[0.8] mb-8 tracking-tighter uppercase italic gold-text text-glow">
-              {heroTrack?.title || artistData.name}
-            </h2>
-            <div className="flex flex-wrap gap-6 items-center">
-              <button 
-                onClick={() => heroTrack && openVideo(heroTrack)}
-                className="group relative px-12 py-6 bg-white text-black font-black uppercase tracking-[0.3em] text-sm overflow-hidden transition-all hover:bg-gold"
-              >
-                <div className="relative z-10 flex items-center gap-4">
-                  <Play fill="black" size={20} /> REPRODUCIR AHORA
-                </div>
-              </button>
-              <div className="flex gap-4">
-                <a href={artistData.socials.spotify} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
-                  <Music2 size={24} />
-                </a>
-                <a href={artistData.socials.youtube} target="_blank" rel="noopener noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all backdrop-blur-md bg-white/5">
-                  <Youtube size={24} />
-                </a>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8 }}
-            className="hidden lg:block w-1/3 aspect-square industrial-border p-4 bg-white/5 backdrop-blur-xl"
-          >
-            <img src={heroTrack?.cover || artistData.logo} className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-700" />
-            <div className="absolute top-8 right-8 bg-gold text-black p-3 font-black text-[10px] uppercase tracking-tighter rotate-12">
-              DISPONIBLE <br /> {heroTrack?.releaseDate && new Date(heroTrack.releaseDate) > new Date() ? 'PRÓXIMAMENTE' : 'AHORA'}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Vertical Text */}
-        <div className="absolute left-10 top-1/2 -translate-y-1/2 hidden xl:block">
-          <p className="text-[10px] uppercase tracking-[1em] font-black text-white/20 rotate-180 [writing-mode:vertical-lr]">
-            TEMPORADA 2026 • 614 RECORDS
-          </p>
-        </div>
-      </section>
+      <HeroSection heroTrack={heroTrack} artistData={artistData} openVideo={openVideo} />
 
       {/* Marquee */}
       <div className="bg-gold py-4 md:py-6 border-y-4 md:border-y-8 border-black overflow-hidden relative z-30 -mt-4 rotate-[-1deg]">
@@ -773,630 +392,48 @@ export default function App() {
         </div>
       </div>
 
-      {/* Bento Grid Section - Estrenos Nuevos / Digital Inventory */}
-      <section id="estrenos" className="py-24 md:py-40 px-4 md:px-6 max-w-[1800px] mx-auto overflow-hidden">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-8">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-3 h-3 ${isLoading ? 'bg-white' : 'bg-gold'} animate-pulse`} />
-              <span className="font-black text-gold uppercase tracking-[0.4em] text-[10px]">
-                {isLoading ? 'Syncing Network...' : 'Database Secured & Online'}
-              </span>
-            </div>
-            <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none">
-              Digital <br /> <span className="gold-text">Inventory</span>
+      <InventorySection fullSortedCatalog={fullSortedCatalog} isLoading={isLoading} openVideo={openVideo} />
+      <UpcomingSection artistData={artistData} />
+      <BioSection artistData={artistData} />
+      <MilestonesSection />
+      <TourSection tour={artistData.tour} />
+      <AlbumsSection randomizedAlbums={randomizedAlbums} openVideo={openVideo} />
+
+      {/* Christian Urban Music CTA */}
+      <section className="py-20 md:py-32 px-4 md:px-6 bg-black relative overflow-hidden text-center border-y border-gold/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center gap-6">
+            <Music2 className="text-gold animate-pulse" size={48} />
+            <h3 className="font-display text-4xl md:text-7xl uppercase italic tracking-tighter text-glow mb-2">
+              Música Urbana Cristiana
             </h3>
-          </div>
-          <div className="max-w-sm text-left md:text-right">
-            <p className="text-white/40 uppercase tracking-widest text-[10px] font-black mb-4">614 Protocol // Music Extraction</p>
-            <p className="text-sm italic font-serif text-white/60">Cada pista es un activo digital único, forjado con la esencia de Chihuahua y el ritmo del 614.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          {/* Main Featured Asset */}
-          {fullSortedCatalog.length > 0 && (
-            <motion.div 
-              whileHover={{ scale: 0.995 }}
-              className="md:col-span-8 relative aspect-square md:aspect-auto md:h-[700px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
-              onClick={(e) => openVideo(fullSortedCatalog[0], e)}
-            >
-            <img src={fullSortedCatalog[0].cover} alt={fullSortedCatalog[0].title} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
-            
-            <div className="absolute top-10 left-10 hidden md:block">
-              <div className="bg-black/80 backdrop-blur-md border border-white/10 p-4 font-black">
-                <p className="text-[8px] text-gold tracking-[0.3em] uppercase mb-1">Asset ID</p>
-                <p className="text-xl font-display text-white gold-shimmer">{fullSortedCatalog[0].assetId}</p>
-              </div>
-            </div>
-
-            <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full flex justify-between items-end">
-              <div>
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="bg-gold text-black px-3 py-1 text-[8px] font-black uppercase">ULTRA-HIGH FREQUENCY</span>
-                  <span className="text-white/40 text-[8px] font-black">{(fullSortedCatalog[0] as any).year || '2026'} // MASTERED</span>
-                </div>
-                <h4 className="text-5xl md:text-8xl font-display uppercase italic leading-none text-glow">{fullSortedCatalog[0].title}</h4>
-                <div className="flex gap-8 mt-6">
-                  <div>
-                    <p className="text-[8px] text-white/30 uppercase font-black">BPM</p>
-                    <p className="text-xs font-black text-gold">145</p>
-                  </div>
-                  <div>
-                    <p className="text-[8px] text-white/30 uppercase font-black">Key</p>
-                    <p className="text-xs font-black text-gold">G Minor</p>
-                  </div>
-                  <div>
-                    <p className="text-[8px] text-white/30 uppercase font-black">Duration</p>
-                    <p className="text-xs font-black text-gold">{(fullSortedCatalog[0] as any).duration || '3:30'}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="w-16 h-16 md:w-24 md:h-24 bg-white text-black flex items-center justify-center rounded-full group-hover:bg-gold transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                <Play fill="black" size={32} />
-              </div>
-            </div>
-          </motion.div>
-          )}
-
-          {/* Side Grid Assets */}
-          <div className="md:col-span-4 grid grid-cols-1 gap-6 md:gap-8">
-            {fullSortedCatalog.slice(1, 4).map((track, i) => (
-              <motion.div 
-                key={track.title}
-                whileHover={{ x: 10 }}
-                className="relative h-[215px] overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal flex"
-                onClick={() => openVideo(track)}
-              >
-                <div className="w-1/3 h-full overflow-hidden border-r border-white/10">
-                  <img src={track.cover} alt={track.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
-                </div>
-                <div className="w-2/3 p-6 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-[8px] text-gold font-black uppercase tracking-widest">Asset {track.assetId}</span>
-                      <Play size={12} className="text-white/20 group-hover:text-gold transition-colors" />
-                    </div>
-                    <h4 className="text-2xl font-display uppercase italic leading-tight group-hover:text-gold transition-colors">{track.title}</h4>
-                    <p className="text-[10px] text-white/30 mt-1 uppercase font-black">{(track as any).year || (track as any).album || '2026'}</p>
-                  </div>
-                  <div className="flex justify-between items-end border-t border-white/5 pt-4">
-                    <span className="text-[8px] font-black text-white/40 uppercase">Encrypted // {(track as any).duration || '3:30'}</span>
-                    <button className="text-[8px] font-black text-gold uppercase hover:text-white transition-colors">ACCESS FILE</button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Bottom Grid Assets */}
-          <div className="md:col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {fullSortedCatalog.slice(4, 12).map((track, i) => (
-              <motion.div 
-                key={track.title}
-                whileHover={{ y: -10 }}
-                className="relative aspect-square overflow-hidden group cursor-pointer industrial-border bg-ranch-charcoal"
-                onClick={() => openVideo(track)}
-              >
-                <img src={track.cover} alt={track.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent p-6 flex flex-col justify-end">
-                  <p className="text-[8px] text-gold font-black mb-1">TRACK // DATA // {track.assetId}</p>
-                  <h4 className="text-xl md:text-2xl font-display uppercase italic">{track.title}</h4>
-                </div>
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all">
-                  <div className="w-10 h-10 bg-gold text-black flex items-center justify-center rounded-full">
-                    <Play fill="black" size={16} />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-            
-            {/* Tech Specs / CTA */}
-            <div className="md:col-span-3 glass-card p-8 md:p-12 border border-gold/30 flex flex-col md:flex-row gap-10 items-center justify-between">
-              <div className="w-full md:w-1/2 space-y-8">
-                <div>
-                  <div className="flex items-center gap-4 mb-4">
-                    <TrendingUp className="text-gold" size={24} />
-                    <h4 className="text-3xl font-display uppercase italic gold-text leading-none">High-End Sound</h4>
-                  </div>
-                  <p className="text-white/40 text-xs md:text-sm italic font-serif">Experimenta la definición técnica total de cada producción 614.</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/5 border border-white/10 text-center">
-                    <p className="text-[8px] text-white/40 font-black uppercase mb-1">Peak Level</p>
-                    <p className="text-lg font-display text-gold">+3.2dB</p>
-                  </div>
-                  <div className="p-4 bg-white/5 border border-white/10 text-center">
-                    <p className="text-[8px] text-white/40 font-black uppercase mb-1">Bit Rate</p>
-                    <p className="text-lg font-display text-gold">24-BIT</p>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full md:w-1/3 flex flex-col gap-4">
-                <button 
-                  onClick={() => openVideo(fullSortedCatalog[0])}
-                  className="w-full py-5 bg-gold text-black hover:bg-white transition-all uppercase font-black tracking-widest text-[10px]"
-                >
-                  LOAD ALL ASSETS
-                </button>
-                <button className="w-full py-5 border border-white hover:bg-white hover:text-black transition-all uppercase font-black tracking-widest text-[10px]">
-                  DOWNLOAD DATA
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* Estrenos Próximos Section */}
-      <section id="upcoming" className="py-20 md:py-32 px-4 md:px-6 bg-ranch-charcoal">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="mb-12 md:mb-20">
-            <span className="font-gothic text-gold text-4xl md:text-5xl mb-2 block">Estrenos Próximos</span>
-            <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
-              Lo Que <br /> <span className="gold-text">Viene</span>
-            </h3>
-          </div>
-
-          {(artistData.upcoming.length > 0) ? (
-            /* Group Upcoming by Artist */
-            Object.entries(
-              artistData.upcoming.reduce((acc: any, item: any) => {
-                const artist = item.artist || 'Juan 614';
-                if (!acc[artist]) acc[artist] = [];
-                acc[artist].push(item);
-                return acc;
-              }, {})
-            ).map(([artistName, tracks]: [string, any]) => (
-              <div key={artistName} className="space-y-12">
-                <div className="flex items-center gap-4 border-b border-gold/20 pb-4">
-                   <div className="w-2 h-2 bg-gold" />
-                   <h4 className="text-xl md:text-2xl font-black uppercase tracking-[0.4em] text-white/60">
-                     Apartado: <span className="text-gold">{artistName}</span>
-                   </h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                  {tracks.map((item: any, idx: number) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10 hover:border-gold transition-all"
-                    >
-                      <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
-                        <img src={item.cover} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                      </div>
-                      <div className="w-full md:w-1/2 text-center md:text-left">
-                        <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                          <Calendar size={16} className="text-gold" />
-                          <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.displayDate || item.date}</span>
-                          <div className="h-4 w-[1px] bg-white/10 mx-2" />
-                          <CountdownTimer targetDate={item.date} />
-                        </div>
-                        <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
-                        <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Artista: {item.artist}</p>
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block w-full md:w-auto bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-gold transition-all text-center"
-                        >
-                          Pre-Save Now
-                        </a>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            /* Show sample data when no upcoming releases */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-              {[
-                { title: "Lo Mejor Que Puedo Darte", date: "2026-05-15", cover: "https://i.ytimg.com/vi/YQmozpauppM/hqdefault.jpg" },
-                { title: "Familia Pirata", date: "2026-06-01", cover: "https://i.ytimg.com/vi/Z0lMPVUYKnQ/hqdefault.jpg" }
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="group relative flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-white/5 p-6 md:p-10 border border-white/10"
-                >
-                  <div className="w-full md:w-1/2 aspect-square overflow-hidden border-2 border-white/10">
-                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="w-full md:w-1/2 text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                      <Calendar size={16} className="text-gold" />
-                      <span className="text-gold font-black uppercase tracking-widest text-[10px]">{item.date}</span>
-                    </div>
-                    <h4 className="text-3xl md:text-5xl font-display uppercase italic leading-none mb-4">{item.title}</h4>
-                    <p className="text-white/40 uppercase tracking-widest text-xs mb-8">Próximamente</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Featured Quote Section */}
-      <section className="py-24 md:py-40 bg-white text-black overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none overflow-hidden">
-          <p className="text-[50vw] md:text-[30vw] font-display leading-none uppercase italic whitespace-nowrap -ml-20">JUAN 614 JUAN 614</p>
-        </div>
-        <div className="max-w-[1200px] mx-auto px-4 md:px-6 relative z-10 text-center">
-          <span className="font-gothic text-3xl md:text-4xl mb-6 md:mb-8 block">La Filosofía</span>
-          <h2 className="text-4xl md:text-8xl font-display uppercase italic leading-[0.9] tracking-tighter mb-10 md:mb-12">
-            "Muerde como <span className="text-gold drop-shadow-sm">serpiente</span>. La cara de pera. Corazones rotos dolidos."
-          </h2>
-          <div className="w-16 md:w-20 h-1 bg-black mx-auto" />
-        </div>
-      </section>
-
-      {/* Biography Section */}
-      <section id="bio" className="py-24 md:py-40 px-4 md:px-6 bg-black relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-1/2 h-full bg-gold/5 -skew-x-12 translate-x-1/2" />
-        <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 md:gap-32 items-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <span className="w-12 h-[2px] bg-gold" />
-              <span className="font-black text-gold uppercase tracking-[0.5em] text-xs">Origin Story</span>
-            </div>
-            <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none mb-12">
-              Juan <span className="gold-text">614</span>
-            </h3>
-            <div className="space-y-8 text-white/60 text-lg md:text-xl font-serif italic leading-relaxed border-l border-white/10 pl-8">
-              <p>
-                Originario de Chihuahua, México (código 614), Juan ha irrumpido en los Corridos Tumbados con una propuesta que fusiona la crudeza urbana con una introspección espiritual profunda.
-              </p>
-              <p>
-                "Muerde como serpiente" y "La cara de pera" son más que frases; son el manifiesto de un artista que redefine el regional mexicano bajo el sello <span className="text-gold">Diosmasgym Records</span>.
-              </p>
-            </div>
-            <div className="mt-16 grid grid-cols-2 gap-12">
-              <div className="industrial-border p-6 bg-white/5">
-                <p className="text-gold font-display text-5xl mb-1">614</p>
-                <p className="text-[10px] uppercase tracking-widest font-black opacity-40">Local Protocol</p>
-              </div>
-              <div className="industrial-border p-6 bg-white/5">
-                <p className="text-gold font-display text-5xl mb-1">100%</p>
-                <p className="text-[10px] uppercase tracking-widest font-black opacity-40">Authentic Data</p>
-              </div>
-            </div>
-          </motion.div>
-          <div className="relative industrial-border p-4 bg-white/5 backdrop-blur-xl">
-            <img src={artistData.logo} alt="Juan 614 Bio" className="w-full aspect-[4/5] object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000" />
-            <div className="absolute -bottom-6 -right-6 bg-gold text-black p-4 font-black text-xs uppercase tracking-widest rotate-3 shadow-xl">
-              Verified Artist // 614-SEC
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Milestones Section */}
-      <section className="py-24 md:py-40 px-4 md:px-6 bg-ranch-black relative border-y border-white/5">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-8">
-            <div>
-              <p className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4">Transmission History</p>
-              <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none">
-                Key <br /> <span className="gold-text">Milestones</span>
-              </h3>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-0">
-            {[
-              { year: "2023", title: "CÓDIGO 614", desc: "Forjando el sonido urbano regional en las calles de Chihuahua." },
-              { year: "2024", title: "VIRAL IMPACT", desc: "Lanzamientos virales que capturaron la escena nacional." },
-              { year: "2025", title: "DIOSMASGYM ERA", description: "Alianza estratégica y profesionalización total de la marca." },
-              { year: "2026", title: "GLOBAL HUB", desc: "Lanzamiento de plataforma oficial y expansión internacional." }
-            ].map((milestone, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.2 }}
-                className="relative p-8 md:p-12 border border-white/5 bg-black/40 group hover:bg-gold transition-all duration-500"
-              >
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <TrendingUp size={64} />
-                </div>
-                <p className="font-display text-4xl md:text-6xl text-gold group-hover:text-black transition-colors mb-4">{milestone.year}</p>
-                <h4 className="font-black text-xl md:text-2xl uppercase tracking-tighter mb-4 group-hover:text-black transition-colors">{milestone.title}</h4>
-                <p className="text-white/40 text-xs md:text-sm italic font-serif group-hover:text-black/60 transition-colors">{(milestone as any).desc || (milestone as any).description}</p>
-                <div className="mt-8 h-[2px] w-12 bg-gold group-hover:bg-black transition-colors" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tour Section */}
-      <section id="tour" className="py-24 md:py-40 px-4 md:px-6 bg-gold text-black overflow-hidden relative">
-        <div className="max-w-[1200px] mx-auto relative z-10">
-          <div className="mb-16 md:mb-24">
-            <p className="text-black/40 font-black uppercase tracking-[0.4em] text-[10px] mb-4">Live Protocol</p>
-            <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic leading-none">
-              Tour <br /> <span className="text-white drop-shadow-lg">Dates</span>
-            </h3>
-          </div>
-          <div className="space-y-4">
-            {artistData.tour.map((show: any, idx: number) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="group flex flex-col md:flex-row justify-between items-start md:items-center p-8 border-4 border-black bg-white/10 hover:bg-black hover:text-white transition-all"
-              >
-                <div>
-                  <p className="font-display text-3xl md:text-5xl uppercase italic">{show.city}</p>
-                  <p className="font-black uppercase tracking-[0.3em] text-[10px] mt-2 opacity-40">{show.venue}</p>
-                </div>
-                <div className="mt-4 md:mt-0 flex items-center gap-4">
-                  <Calendar size={20} />
-                  <span className="font-black text-xl md:text-2xl">{show.date}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Albums Section */}
-      <section id="albumes" className="py-24 md:py-40 px-4 md:px-6 bg-[#080808] relative">
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-        <div className="max-w-[1800px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-8">
-            <h3 className="font-display text-7xl md:text-9xl tracking-tighter uppercase italic text-glow">Discografía</h3>
-            <div className="text-left md:text-right">
-              <p className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4">Total Assets Decrypted</p>
-              <p className="text-4xl md:text-5xl font-display gold-text">+5.2 BILLONES</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {randomizedAlbums.map((album, idx) => (
-              <motion.div 
-                key={idx}
-                whileHover={{ y: -15 }}
-                className="relative aspect-square overflow-hidden group cursor-pointer border border-white/10"
-                onClick={() => openVideo(album)}
-              >
-                <img 
-                  src={album.cover} 
-                  alt={album.title} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
-                
-                {/* Inventory Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 p-8 flex flex-col justify-between">
-                  <div className="flex justify-between items-start">
-                    <div className="w-14 h-14 bg-gold text-black flex items-center justify-center rounded-full shadow-[0_0_20px_rgba(212,175,55,0.5)]">
-                      <Play fill="black" size={24} />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-gold font-black uppercase tracking-widest">{album.year}</p>
-                      <p className="text-2xl font-display text-white italic">#{(idx + 1).toString().padStart(3, '0')}</p>
-                    </div>
-                  </div>
-                  <div className="industrial-border p-4 bg-black/40 backdrop-blur-sm">
-                    <h4 className="text-2xl md:text-3xl font-display uppercase italic leading-none">{album.title}</h4>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-4 left-4 group-hover:opacity-0 transition-opacity">
-                   <div className="bg-black/60 backdrop-blur-md px-3 py-1 border border-white/10">
-                      <p className="text-[8px] font-black text-gold uppercase tracking-[0.2em]">{album.title}</p>
-                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-       {/* Christian Urban Music CTA */}
-       <section className="py-20 md:py-32 px-4 md:px-6 bg-black relative overflow-hidden text-center border-y border-gold/10">
-         <div className="max-w-4xl mx-auto">
-           <div className="flex flex-col items-center gap-6">
-             <Music2 className="text-gold animate-pulse" size={48} />
-             <h3 className="font-display text-4xl md:text-7xl uppercase italic tracking-tighter text-glow mb-2">
-               Música Urbana Cristiana
-             </h3>
-             <p className="text-white/60 text-lg md:text-xl font-serif italic mb-10">
-               ¿Buscas más de nuestra esencia con un mensaje diferente?
-             </p>
-             <a 
-               href="https://musica.diosmasgym.com/" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               className="group relative inline-block bg-white text-black px-12 py-6 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-gold shadow-2xl"
-             >
-               <span className="relative z-10">EXPLORAR AHORA</span>
-               <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-             </a>
-           </div>
-         </div>
-         {/* Background Decorative Text */}
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none whitespace-nowrap">
-           <p className="text-[30vw] font-display uppercase italic">GOD MUSIC GOD MUSIC</p>
-         </div>
-       </section>
-
-       {/* Studio Sessions Section */}
-       {studioSessions.length > 0 && (
-         <section className="py-24 md:py-40 px-4 md:px-6 bg-ranch-charcoal">
-           <div className="max-w-[1800px] mx-auto">
-             <div className="mb-16 md:mb-24">
-               <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
-                 Studio <br /> <span className="gold-text">Sessions</span>
-               </h3>
-               <p className="text-white/40 uppercase tracking-widest text-[10px] font-black mt-4">Demos • Acústicos • Detrás de cámaras</p>
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-               {studioSessions.map((session, idx) => (
-                 <motion.div 
-                   key={session.id}
-                   initial={{ opacity: 0, y: 20 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   className="group relative overflow-hidden border border-white/10 hover:border-gold transition-all"
-                 >
-                   {session.cover && (
-                     <img src={session.cover} alt={session.title} loading="lazy" className="w-full aspect-video object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
-                   )}
-                   <div className="p-6">
-                     <h4 className="text-2xl font-display uppercase italic mb-2">{session.title}</h4>
-                     <p className="text-white/60 text-sm mb-4">{session.description}</p>
-                     {session.videoUrl && (
-                       <a 
-                         href={session.videoUrl}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="inline-block bg-gold text-black px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all"
-                       >
-                         Ver Sesión
-                       </a>
-                     )}
-                   </div>
-                 </motion.div>
-               ))}
-             </div>
-           </div>
-         </section>
-       )}
-
-       {/* Collaborators Section */}
-       {collaborators.length > 0 && (
-         <section className="py-24 md:py-40 px-4 md:px-6">
-           <div className="max-w-[1800px] mx-auto">
-             <div className="mb-16 md:mb-24">
-               <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
-                 Colaboradores <br /> <span className="gold-text">Destacados</span>
-               </h3>
-             </div>
-             
-             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-               {collaborators.map((collab, idx) => (
-                 <motion.div
-                   key={collab.id}
-                   whileHover={{ scale: 1.05 }}
-                   className="group text-center"
-                 >
-                   <div className="w-full aspect-square overflow-hidden border-2 border-white/10 group-hover:border-gold transition-all mb-4">
-                     <img src={collab.image} alt={collab.name} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
-                   </div>
-                   <h4 className="font-display text-lg uppercase italic">{collab.name}</h4>
-                   <p className="text-[10px] text-white/40 uppercase tracking-widest">{collab.genre}</p>
-                   {collab.socialLink && (
-                     <a href={collab.socialLink} target="_blank" rel="noopener noreferrer" className="text-[8px] text-gold uppercase tracking-widest hover:text-white transition-colors">
-                       Ver perfil
-                     </a>
-                   )}
-                 </motion.div>
-               ))}
-             </div>
-           </div>
-         </section>
-       )}
-
-       {/* Interactive Timeline Section */}
-       <section className="py-24 md:py-40 px-4 md:px-6 bg-[#080808]">
-         <div className="max-w-[1800px] mx-auto">
-           <div className="mb-16 md:mb-24">
-             <h3 className="font-display text-6xl md:text-9xl tracking-tighter uppercase italic leading-none">
-               Línea de <br /> <span className="gold-text">Tiempo</span>
-             </h3>
-           </div>
-           
-           <div className="relative border-l-2 border-gold/30 pl-8 md:pl-16 space-y-16">
-             {artistData.featuredTracks.slice(0, 5).map((track: any, idx: number) => (
-               <motion.div
-                 key={track.id}
-                 initial={{ opacity: 0, x: -20 }}
-                 whileInView={{ opacity: 1, x: 0 }}
-                 viewport={{ once: true }}
-                 className="relative"
-               >
-                 <div className="absolute -left-[41px] top-0 w-6 h-6 bg-gold border-4 border-black" />
-                 <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
-                   <img src={track.cover} alt={track.title} loading="lazy" className="w-full md:w-48 aspect-square object-cover border border-white/10" />
-                   <div>
-                     <p className="text-gold font-black text-[10px] uppercase tracking-widest mb-2">
-                       {new Date(track.releaseDate).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
-                     </p>
-                     <h4 className="text-3xl font-display uppercase italic mb-4">{track.title}</h4>
-                     <p className="text-white/60">{track.album}</p>
-                   </div>
-                 </div>
-               </motion.div>
-             ))}
-           </div>
-         </div>
-       </section>
-
-       <Store />
-       <Newsletter />
-
-       {/* Footer */}
-      <footer className="bg-black py-20 md:py-32 px-4 md:px-6 border-t border-white/10">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-20 mb-20 md:mb-32">
-            <div className="lg:col-span-2">
-              <h4 className="font-display text-6xl md:text-8xl gold-text mb-6 md:mb-8">614</h4>
-              <p className="text-white/40 text-lg md:text-xl font-serif italic max-w-md">
-                "Muerde como serpiente. La cara de pera. Corazones rotos dolidos."
-              </p>
-            </div>
-            <div>
-              <h5 className="text-gold font-black uppercase tracking-widest text-[10px] mb-6 md:mb-8">Navegación</h5>
-              <ul className="space-y-3 md:space-y-4 text-xs uppercase tracking-widest font-bold">
-                <li><a href="#" className="hover:text-gold transition-colors">Inicio</a></li>
-                <li><a href="#albums" className="hover:text-gold transition-colors">Álbumes</a></li>
-                <li><a href="#tour" className="hover:text-gold transition-colors">Gira</a></li>
-                <li><a href="#gallery" className="hover:text-gold transition-colors">Galería</a></li>
-                <li><a href="#bio" className="hover:text-gold transition-colors">Biografía</a></li>
-                <li><a href="#tour" className="hover:text-gold transition-colors">Tour</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-gold font-black uppercase tracking-widest text-[10px] mb-6 md:mb-8">Debug</h5>
-              <p className="text-[6px] text-white/20 uppercase tracking-widest">
-                Cat: {CATALOG_URL ? 'Linked' : 'Missing'} <br />
-                Upc: {UPCOMING_URL ? 'Linked' : 'Missing'} <br />
-                Cache: v6
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 gap-8 text-center md:text-left">
-            <p className="text-[8px] md:text-[10px] uppercase tracking-[0.5em] text-white/20">
-              © 2026 DIOSMASGYM RECORDS • PRODUCIDO POR EL EQUIPO 614
+            <p className="text-white/60 text-lg md:text-xl font-serif italic mb-10">
+              ¿Buscas más de nuestra esencia con un mensaje diferente?
             </p>
-            <div className="flex gap-8 md:gap-12 text-[8px] md:text-[10px] uppercase tracking-widest font-black text-white/40">
-              <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-              <a href="#" className="hover:text-white transition-colors">Términos</a>
-              <a href="#" className="hover:text-white transition-colors">Cookies</a>
-            </div>
+            <a 
+              href="https://musica.diosmasgym.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative inline-block bg-white text-black px-12 py-6 font-black uppercase tracking-[0.4em] text-sm overflow-hidden transition-all hover:bg-gold shadow-2xl"
+            >
+              <span className="relative z-10">EXPLORAR AHORA</span>
+              <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </a>
           </div>
         </div>
-      </footer>
+        {/* Background Decorative Text */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none whitespace-nowrap">
+          <p className="text-[30vw] font-display uppercase italic">GOD MUSIC GOD MUSIC</p>
+        </div>
+      </section>
+
+      <StudioSessionsSection studioSessions={studioSessions} />
+      <CollaboratorsSection collaborators={collaborators} />
+      <TimelineSection featuredTracks={artistData.featuredTracks} />
+      
+      <Store />
+      <Newsletter />
+      <Footer CATALOG_URL={CATALOG_URL} UPCOMING_URL={UPCOMING_URL} />
 
       {/* PWA Install Banner */}
       <AnimatePresence>
