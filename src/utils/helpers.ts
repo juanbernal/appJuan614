@@ -3,7 +3,7 @@ export const INITIAL_ARTIST = {
   genre: "CORRIDOS TUMBADOS • URBANO",
   bio: "La cara de pera. Lengua larga. Ya basta. Muerde como serpiente. Corazones rotos dolidos. Juan 614 es la nueva voz de las calles, trayendo una energía cruda y única a la escena urbana regional desde Chihuahua.",
   spotifyId: "0vEKa5AOcBkQVXNfGb2FNh",
-  logo: "https://image-cdn-ak.spotifycdn.com/image/ab67616100005174ad3895d1abba8e7a7929bca1", 
+  logo: "/logo.jpg", 
 
   socials: {
     instagram: "https://www.instagram.com/juan614oficial",
