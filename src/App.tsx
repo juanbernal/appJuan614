@@ -108,10 +108,15 @@ export default function App() {
           dataRows.forEach((row, idx) => {
             if (idx === 0 || !row[0]) return;
             
+            const artistField = row[1] || "";
+            // Solo incluir tracks de Juan 614 (o sin artista especificado)
+            const isJuan614 = !artistField || artistField.toLowerCase().includes("juan") || artistField.toLowerCase().includes("614");
+            if (!isJuan614) return;
+
             const track = {
               id: `cat-${idx}`,
               title: row[0],
-              artist: row[1] || "Juan 614",
+              artist: artistField || "Juan 614",
               spotifyUrl: row[2],
               cover: row[3],
               album: row[4] || "Single",
@@ -130,10 +135,16 @@ export default function App() {
           
           upRows.forEach((row, idx) => {
             if (!row[0] || (row[0].toLowerCase() === 'name' && idx === 0)) return;
+
+            const artistField = row[5] || "";
+            // Solo incluir tracks de Juan 614 (o sin artista especificado)
+            const isJuan614 = !artistField || artistField.toLowerCase().includes("juan") || artistField.toLowerCase().includes("614");
+            if (!isJuan614) return;
+
             const track = {
               id: `up-${idx}`,
               title: row[0],
-              artist: row[5] || "Juan 614",
+              artist: artistField || "Juan 614",
               spotifyUrl: row[3], // preSaveLink
               cover: row[2], // coverImageUrl
               album: "Single",
