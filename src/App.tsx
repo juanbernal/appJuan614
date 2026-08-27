@@ -108,10 +108,18 @@ export default function App() {
           dataRows.forEach((row, idx) => {
             if (idx === 0 || !row[0]) return;
             
-            const artistField = row[1] || "";
-            // Solo incluir tracks de Juan 614 (o sin artista especificado)
-            const isJuan614 = !artistField || artistField.toLowerCase().includes("juan") || artistField.toLowerCase().includes("614");
+            const artistField = (row[1] || "").trim();
+            const artistLower = artistField.toLowerCase();
+            const isJuan614 = artistField === "" 
+              || artistLower.includes("juan") 
+              || artistLower.includes("614");
             if (!isJuan614) return;
+
+            const releaseDate = parseReleaseDate(row[5] || "");
+            
+            // Filtro de fecha: solo tracks del 2025 en adelante
+            // (el contenido ajeno tiene fechas 2023-2024)
+            if (releaseDate.getFullYear() < 2025) return;
 
             const track = {
               id: `cat-${idx}`,
@@ -122,7 +130,6 @@ export default function App() {
               album: row[4] || "Single",
               releaseDate: row[5] || ""
             };
-            const releaseDate = parseReleaseDate(track.releaseDate);
             
             allTracks.push({ ...track, releaseDate: releaseDate.toISOString() });
           });
